@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Scratch space (CLAUDE.md: /tmp is always safe to delete, never committed)
+tmp/
+
+# Build output
+dist/
+build/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+
+# Claude Code local/machine-specific settings (personal permission overrides, not shared config)
+.claude/settings.local.json
