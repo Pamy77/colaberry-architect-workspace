@@ -1,0 +1,13 @@
+order_id,customer_name,region,product,quantity,revenue,order_date,load_timestamp
+O1001,Jordan Blake,US-EAST,Standard Widget,3,245.00,2026-08-02,2026-08-03T08:00:00Z
+O1002,Priya Nair,US-WEST,Pro Widget,1,120.50,2026-08-02,2026-08-03T08:05:00Z
+O1003,Marco Rossi,EU-WEST,Standard Widget,2,89.99,2026-08-01,2026-08-02T22:00:00Z
+O1004,Aisha Bello,APAC,Enterprise Widget,4,310.00,2026-08-02,2026-08-03T07:45:00Z
+O1005,Sam Whitfield,US-EAST,Starter Widget,1,15.25,2026-08-02,2026-08-03T06:30:00Z
+O1006,Lena Fischer,,Pro Widget,2,76.40,2026-08-02,2026-08-03T09:10:00Z
+O1007,Derek Owusu,EU-EAST,Standard Widget,1,-42.00,2026-08-01,2026-08-03T05:00:00Z
+O1008,Naomi Clarke,US-WEST,Enterprise Widget,5,199.99,2026-07-30,2026-07-31T10:00:00Z
+O1009,Hiro Tanaka,APAC,Starter Widget,1,54.10,2026-08-02,2026-08-03T09:30:00Z
+O1010,Grace Kim,US-EAST,Enterprise Widget,6,430.00,2026-08-03,2026-08-03T08:50:00Z
+O1011,Felix Novak,EU-WEST,Standard Widget,2,67.85,2026-08-02,2026-08-03T09:00:00Z
+O1005,Sam Whitfield,US-EAST,Starter Widget,1,15.25,2026-08-02,2026-08-03T06:30:00Z

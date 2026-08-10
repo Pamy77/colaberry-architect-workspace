@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orders Revenue Dashboard — Incident Status</title>
+<style>
+  .viz-root {
+    color-scheme: light;
+    --surface-1:      #fcfcfb;
+    --page-plane:     #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --border:         rgba(11,11,11,0.10);
+    --status-critical:#d03b3b;
+    --status-good:    #0ca30c;
+    --status-warning: #fab219;
+    --status-serious: #ec835a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) .viz-root {
+      color-scheme: dark;
+      --surface-1:      #1a1a19;
+      --page-plane:     #0d0d0d;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --gridline:       #2c2c2a;
+      --border:         rgba(255,255,255,0.10);
+      --status-critical:#d03b3b;
+      --status-good:    #0ca30c;
+      --status-warning: #fab219;
+      --status-serious: #ec835a;
+    }
+  }
+  :root[data-theme="dark"] .viz-root {
+    color-scheme: dark;
+    --surface-1:      #1a1a19;
+    --page-plane:     #0d0d0d;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --gridline:       #2c2c2a;
+    --border:         rgba(255,255,255,0.10);
+    --status-critical:#d03b3b;
+    --status-good:    #0ca30c;
+    --status-warning: #fab219;
+    --status-serious: #ec835a;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  .viz-root {
+    background: var(--page-plane);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding: 32px 16px 64px;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 0 0 6px;
+  }
+  h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    color: var(--text-primary);
+  }
+  .meta {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 24px;
+  }
+  .meta a { color: inherit; }
+
+  .status-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--status-critical);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 24px;
+  }
+  .status-icon {
+    width: 28px;
+    height: 28px;
+    flex: none;
+    border-radius: 50%;
+    background: var(--status-critical);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .status-text .label {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--status-critical);
+    letter-spacing: .02em;
+  }
+  .status-text .reason {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .tile {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .tile .tile-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .tile .tile-value {
+    font-size: 26px;
+    font-weight: 700;
+    font-variant-numeric: proportional-nums;
+  }
+  .tile.warn .tile-value { color: var(--status-serious); }
+  .tile.ok .tile-value { color: var(--status-good); }
+
+  section {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+  }
+  section h2 {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 0 0 10px;
+  }
+  section p { margin: 0; font-size: 14px; color: var(--text-primary); line-height: 1.5; }
+  section ul { margin: 0; padding-left: 20px; }
+  section li { font-size: 14px; line-height: 1.6; color: var(--text-primary); margin-bottom: 4px; }
+  section li:last-child { margin-bottom: 0; }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .field-row section p.value {
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .pending { color: var(--text-muted); font-style: italic; font-weight: 400; }
+
+  footer {
+    margin-top: 24px;
+    font-size: 12px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--gridline);
+    padding-top: 14px;
+  }
+  footer code {
+    background: var(--page-plane);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: 11px;
+  }
+
+  @media (max-width: 640px) {
+    .tiles { grid-template-columns: repeat(2, 1fr); }
+    .two-col, .field-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="viz-root">
+  <div class="wrap">
+    <p class="eyebrow">Executive Dashboard Brief</p>
+    <h1>Orders Revenue Dashboard — Incident Status</h1>
+    <p class="meta">Date: 2026-08-03 &nbsp;·&nbsp; Sources: <code>data-quality-report.md</code>, <code>etl-triage-report.md</code></p>
+
+    <div class="status-banner">
+      <div class="status-icon" aria-hidden="true">&#10005;</div>
+      <div class="status-text">
+        <div class="label">BLOCKED — data quality failure and pipeline run failure</div>
+        <div class="reason">Not cleared for publication. Three quality-contract violations found; daily pipeline run ended FAILED.</div>
+      </div>
+    </div>
+
+    <div class="tiles">
+      <div class="tile">
+        <div class="tile-label">Rows Extracted</div>
+        <div class="tile-value">12</div>
+      </div>
+      <div class="tile ok">
+        <div class="tile-label">Rows Loaded</div>
+        <div class="tile-value">10</div>
+      </div>
+      <div class="tile warn">
+        <div class="tile-label">Duplicate Skipped</div>
+        <div class="tile-value">1</div>
+      </div>
+      <div class="tile warn">
+        <div class="tile-label">Dead-Lettered</div>
+        <div class="tile-value">1</div>
+      </div>
+    </div>
+
+    <section>
+      <h2>Business Impact</h2>
+      <p class="pending">Not yet quantified.</p>
+    </section>
+
+    <div class="two-col">
+      <section>
+        <h2>What We Know</h2>
+        <ul>
+          <li>The orders dataset feeding the dashboard failed quality validation: a duplicate order record, a missing region value on one order, and a negative revenue value on one order.</li>
+          <li>The daily orders pipeline run on 2026-08-03 ended FAILED. Of 12 orders extracted, 10 loaded; 1 duplicate was safely skipped by existing safeguards; 1 order was set aside for review due to a missing region value rather than being dropped silently.</li>
+          <li>The duplicate order record was handled correctly by existing safeguards and caused no duplicate data in the target table.</li>
+          <li>The negative revenue value loaded into the target table because no rule currently blocks negative revenue — it was flagged for review but did not stop the run.</li>
+          <li>This is the first pipeline failure of this kind in recent run history; the prior two daily runs completed successfully.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>What We Do Not Know</h2>
+        <ul>
+          <li>Whether the missing region value reflects a genuine gap at the source system or an extraction issue.</li>
+          <li>Whether the negative revenue value is a legitimate business event (e.g. a refund) miscategorized as a standard order, or a data error.</li>
+          <li>Whether the duplicate order record is a normal retry/resend from the source system or an upstream key-reuse issue.</li>
+        </ul>
+      </section>
+    </div>
+
+    <section>
+      <h2>Decision or Action Needed</h2>
+      <p>The dashboard must remain unpublished until (1) the missing-region order is resolved — backfilled or explicitly excluded, not silently dropped — and (2) the negative revenue value is confirmed and corrected or excluded. No leadership decision is required yet; these are pending diagnostic/data-steward follow-ups.</p>
+    </section>
+
+    <div class="field-row">
+      <section>
+        <h2>Owner</h2>
+        <p class="value pending">Unassigned / pending assignment</p>
+      </section>
+      <section>
+        <h2>Next Update</h2>
+        <p class="value pending">Not yet scheduled</p>
+      </section>
+    </div>
+
+    <footer>
+      Generated from <code>skill-lab/final-incident-package/data-quality-report.md</code> and <code>skill-lab/final-incident-package/etl-triage-report.md</code>. No financial impact, owner, or resolution time is stated in source reports; none is invented here.
+    </footer>
+  </div>
+</div>
+</body>
+</html>
