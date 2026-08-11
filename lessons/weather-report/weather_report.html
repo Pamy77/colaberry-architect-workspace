@@ -1,0 +1,748 @@
+<title>30-Day Weather Field Report</title>
+<style>
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #10141b;
+      --surface: #171c25;
+      --surface-alt: #1c222c;
+      --border: #2b3340;
+      --ink: #e7eaee;
+      --ink-muted: #9aa3b1;
+      --ink-faint: #6c7686;
+      --temp-low: #e8ab63;
+      --temp-medium: #e08a3e;
+      --temp-high: #ef6a3c;
+      --temp-line: #f0995a;
+      --temp-fill-a: rgba(240, 153, 90, 0.28);
+      --temp-fill-b: rgba(240, 153, 90, 0);
+      --precip-light: #6fb9c4;
+      --precip-moderate: #4b93a0;
+      --precip-heavy: #dd7a5a;
+      --precip-bar: #56a5b3;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #10141b;
+    --surface: #171c25;
+    --surface-alt: #1c222c;
+    --border: #2b3340;
+    --ink: #e7eaee;
+    --ink-muted: #9aa3b1;
+    --ink-faint: #6c7686;
+    --temp-low: #e8ab63;
+    --temp-medium: #e08a3e;
+    --temp-high: #ef6a3c;
+    --temp-line: #f0995a;
+    --temp-fill-a: rgba(240, 153, 90, 0.28);
+    --temp-fill-b: rgba(240, 153, 90, 0);
+    --precip-light: #6fb9c4;
+    --precip-moderate: #4b93a0;
+    --precip-heavy: #dd7a5a;
+    --precip-bar: #56a5b3;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.35);
+  }
+  :root {
+    --bg: #f3f4f7;
+    --surface: #ffffff;
+    --surface-alt: #eceef2;
+    --border: #dde1e7;
+    --ink: #1b2330;
+    --ink-muted: #5c6573;
+    --ink-faint: #8892a0;
+    --temp-low: #c98a2e;
+    --temp-medium: #c96a1f;
+    --temp-high: #b8451c;
+    --temp-line: #bd5a24;
+    --temp-fill-a: rgba(189, 90, 36, 0.16);
+    --temp-fill-b: rgba(189, 90, 36, 0);
+    --precip-light: #4e97a1;
+    --precip-moderate: #2c7482;
+    --precip-heavy: #a8461f;
+    --precip-bar: #2e7d8c;
+    --shadow: 0 1px 2px rgba(20,30,45,0.04), 0 10px 28px rgba(20,30,45,0.08);
+
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+    --sans: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, "Liberation Mono", monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  /* ---------- Header ---------- */
+  .report-header {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(28px, 4vw, 38px);
+    margin: 0;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  .report-sub {
+    color: var(--ink-muted);
+    font-size: 15px;
+    max-width: 62ch;
+  }
+  .report-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin-top: 6px;
+  }
+
+  /* ---------- Section scaffolding ---------- */
+  section { display: flex; flex-direction: column; gap: 14px; }
+  .section-head { display: flex; flex-direction: column; gap: 4px; }
+  .section-index {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+  h2 {
+    font-family: var(--serif);
+    font-size: 21px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .section-note { color: var(--ink-muted); font-size: 14px; max-width: 68ch; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 24px;
+  }
+
+  /* ---------- Stat tiles ---------- */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .stat-tile {
+    background: var(--surface);
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .stat-label {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .stat-value {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 24px;
+    font-weight: 600;
+  }
+  .stat-sub { font-size: 12px; color: var(--ink-muted); }
+
+  /* ---------- Badges ---------- */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 9px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .badge-temp-low    { color: var(--temp-low);    background: color-mix(in srgb, var(--temp-low) 15%, var(--surface)); }
+  .badge-temp-medium { color: var(--temp-medium); background: color-mix(in srgb, var(--temp-medium) 15%, var(--surface)); }
+  .badge-temp-high   { color: var(--temp-high);   background: color-mix(in srgb, var(--temp-high) 15%, var(--surface)); }
+  .badge-precip-light    { color: var(--precip-light);    background: color-mix(in srgb, var(--precip-light) 15%, var(--surface)); }
+  .badge-precip-moderate { color: var(--precip-moderate); background: color-mix(in srgb, var(--precip-moderate) 15%, var(--surface)); }
+  .badge-precip-heavy    { color: var(--precip-heavy);    background: color-mix(in srgb, var(--precip-heavy) 15%, var(--surface)); }
+
+  /* ---------- Legend ---------- */
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: var(--ink-muted); }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-swatch { width: 10px; height: 10px; border-radius: 3px; }
+
+  /* ---------- Charts ---------- */
+  .chart-card { position: relative; }
+  .chart-title-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+  .chart-title { font-family: var(--serif); font-size: 16px; font-weight: 600; }
+  .chart-caption { font-size: 12px; color: var(--ink-faint); font-family: var(--mono); }
+  .chart-wrap { width: 100%; overflow-x: auto; }
+  svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
+  .grid-line { stroke: var(--border); stroke-width: 1; }
+  .axis-label { fill: var(--ink-faint); font-family: var(--mono); font-size: 10px; }
+  .crosshair { stroke: var(--ink-faint); stroke-width: 1; stroke-dasharray: 2 3; opacity: 0; pointer-events: none; }
+  .hover-dot { opacity: 0; pointer-events: none; }
+  .bar-rect { cursor: pointer; transition: opacity 120ms ease; }
+  .bar-rect:hover, .bar-rect.active { opacity: 0.72; }
+  .hit-col { fill: transparent; cursor: crosshair; }
+
+  .tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: var(--ink);
+    color: var(--surface);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    line-height: 1.45;
+    box-shadow: var(--shadow);
+    opacity: 0;
+    transform: translate(-50%, -100%);
+    white-space: nowrap;
+    z-index: 5;
+    transition: opacity 100ms ease;
+  }
+  .tooltip strong { display: block; font-family: var(--sans); font-weight: 600; margin-bottom: 2px; }
+
+  /* ---------- Tables ---------- */
+  .table-wrap { width: 100%; overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; min-width: 560px; }
+  thead th {
+    text-align: left;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    background: var(--surface-alt);
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    font-variant-numeric: tabular-nums;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--surface-alt); }
+  td.num, th.num { text-align: right; font-family: var(--mono); }
+
+  /* ---------- Sort controls ---------- */
+  .control-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .control-label { font-size: 12px; color: var(--ink-faint); margin-right: 4px; }
+  button.sort-btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--ink-muted);
+    padding: 6px 12px;
+    border-radius: 100px;
+    cursor: pointer;
+  }
+  button.sort-btn:hover { color: var(--ink); border-color: var(--ink-faint); }
+  button.sort-btn.active { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+  button.sort-btn:focus-visible { outline: 2px solid var(--temp-line); outline-offset: 2px; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+    font-size: 12px;
+    color: var(--ink-faint);
+    font-family: var(--mono);
+  }
+
+  @media (max-width: 560px) {
+    .page { padding: 36px 16px 72px; gap: 32px; }
+    .card { padding: 18px; }
+  }
+</style>
+
+<div class="page">
+
+  <header class="report-header">
+    <div class="eyebrow">Field Report · Text Manipulation · Aggregation · Sorting · Plotting</div>
+    <h1>30-Day Weather Field Report</h1>
+    <p class="report-sub">Daily temperature and precipitation readings, classified into text-labeled categories, aggregated by week, and sorted across four dimensions.</p>
+    <div class="report-meta">
+      <span>SOURCE: Weather_data.csv</span>
+      <span>PERIOD: Day 1 &ndash; Day 30</span>
+      <span>OBSERVATIONS: 30</span>
+    </div>
+  </header>
+
+  <section aria-label="Summary statistics">
+    <div class="stat-grid">
+      <div class="stat-tile">
+        <span class="stat-label">Avg Temperature</span>
+        <span class="stat-value" id="statAvgTemp">–</span>
+        <span class="stat-sub">°C across 30 days</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-label">Avg Precipitation</span>
+        <span class="stat-value" id="statAvgPrecip">–</span>
+        <span class="stat-sub">mm per day</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-label">Hottest Day</span>
+        <span class="stat-value" id="statMaxTemp">–</span>
+        <span class="stat-sub" id="statMaxTempSub">–</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-label">Wettest Day</span>
+        <span class="stat-value" id="statMaxPrecip">–</span>
+        <span class="stat-sub" id="statMaxPrecipSub">–</span>
+      </div>
+    </div>
+  </section>
+
+  <section aria-label="Temperature trend">
+    <div class="section-head">
+      <span class="section-index">01 &middot; Plotting</span>
+      <h2>Temperature trend</h2>
+      <p class="section-note">Daily temperature across the month. Hover the plot to read a specific day.</p>
+    </div>
+    <div class="card chart-card">
+      <div class="chart-title-row">
+        <span class="chart-title">Temperature, Day 1&ndash;30</span>
+        <span class="chart-caption">°C</span>
+      </div>
+      <div class="chart-wrap">
+        <svg class="chart" id="lineChart" viewBox="0 0 780 300" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+      <div class="tooltip" id="lineTooltip"></div>
+    </div>
+  </section>
+
+  <section aria-label="Precipitation levels">
+    <div class="section-head">
+      <span class="section-index">01 &middot; Plotting</span>
+      <h2>Precipitation levels</h2>
+      <p class="section-note">Daily precipitation, colored by rainfall classification (Light &lt; 2.5&nbsp;mm, Moderate 2.5&ndash;7.6&nbsp;mm, Heavy &gt; 7.6&nbsp;mm).</p>
+    </div>
+    <div class="card chart-card">
+      <div class="chart-title-row">
+        <span class="chart-title">Precipitation, Day 1&ndash;30</span>
+        <span class="chart-caption">mm</span>
+      </div>
+      <div class="chart-wrap">
+        <svg class="chart" id="barChart" viewBox="0 0 780 300" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+      <div class="tooltip" id="barTooltip"></div>
+      <div class="legend" style="margin-top:14px;">
+        <span class="legend-item"><span class="legend-swatch" style="background:var(--precip-light)"></span>Light</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:var(--precip-moderate)"></span>Moderate</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:var(--precip-heavy)"></span>Heavy</span>
+      </div>
+    </div>
+  </section>
+
+  <section aria-label="Weekly aggregation">
+    <div class="section-head">
+      <span class="section-index">02 &middot; Iteration &amp; Aggregation</span>
+      <h2>Weekly averages</h2>
+      <p class="section-note">The month split into five 7-day windows (the final window holds the two trailing days) and averaged.</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Week</th>
+            <th>Days</th>
+            <th class="num">Avg Temp (°C)</th>
+            <th class="num">Avg Precip (mm)</th>
+          </tr>
+        </thead>
+        <tbody id="weeklyBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-label="Category breakdown">
+    <div class="section-head">
+      <span class="section-index">02 &middot; Iteration &amp; Aggregation</span>
+      <h2>Category counts</h2>
+      <p class="section-note">How many of the 30 days fell into each temperature and precipitation class.</p>
+    </div>
+    <div class="stat-grid" id="countGrid"></div>
+  </section>
+
+  <section aria-label="Sortable data table">
+    <div class="section-head">
+      <span class="section-index">03 &middot; Text Manipulation &amp; Sorting</span>
+      <h2>Daily observations</h2>
+      <p class="section-note">Every day, with its ordinal label and text classification. Re-sort by any column.</p>
+    </div>
+    <div class="control-row">
+      <span class="control-label">SORT</span>
+      <button class="sort-btn active" data-key="day" data-dir="asc">Day</button>
+      <button class="sort-btn" data-key="temperature" data-dir="asc">Temp &uarr;</button>
+      <button class="sort-btn" data-key="temperature" data-dir="desc">Temp &darr;</button>
+      <button class="sort-btn" data-key="precipitation" data-dir="asc">Precip &uarr;</button>
+      <button class="sort-btn" data-key="precipitation" data-dir="desc">Precip &darr;</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Day</th>
+            <th class="num">Temperature</th>
+            <th>Class</th>
+            <th class="num">Precipitation</th>
+            <th>Class</th>
+          </tr>
+        </thead>
+        <tbody id="dataBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    Thresholds &mdash; Temperature: Low &lt; 20°C, Medium 20&ndash;26°C, High &ge; 26°C. Precipitation: Light &lt; 2.5mm, Moderate 2.5&ndash;7.6mm, Heavy &ge; 7.6mm.
+  </footer>
+
+</div>
+
+<script>
+const ROWS = [
+  {"day":1,"day_label":"1st","temperature":23.23,"precipitation":2.65,"temp_category":"Medium","precip_category":"Moderate"},
+  {"day":2,"day_label":"2nd","temperature":25.73,"precipitation":7.74,"temp_category":"Medium","precip_category":"Heavy"},
+  {"day":3,"day_label":"3rd","temperature":24.04,"precipitation":4.56,"temp_category":"Medium","precip_category":"Moderate"},
+  {"day":4,"day_label":"4th","temperature":23.17,"precipitation":5.68,"temp_category":"Medium","precip_category":"Moderate"},
+  {"day":5,"day_label":"5th","temperature":21.35,"precipitation":0.19,"temp_category":"Medium","precip_category":"Light"},
+  {"day":6,"day_label":"6th","temperature":24.69,"precipitation":6.18,"temp_category":"Medium","precip_category":"Moderate"},
+  {"day":7,"day_label":"7th","temperature":21.56,"precipitation":6.12,"temp_category":"Medium","precip_category":"Moderate"},
+  {"day":8,"day_label":"8th","temperature":28.38,"precipitation":6.17,"temp_category":"High","precip_category":"Moderate"},
+  {"day":9,"day_label":"9th","temperature":29.45,"precipitation":9.44,"temp_category":"High","precip_category":"Heavy"},
+  {"day":10,"day_label":"10th","temperature":20.75,"precipitation":6.82,"temp_category":"Medium","precip_category":"Moderate"},
+  {"day":11,"day_label":"11th","temperature":26.88,"precipitation":3.6,"temp_category":"High","precip_category":"Moderate"},
+  {"day":12,"day_label":"12th","temperature":22.93,"precipitation":4.37,"temp_category":"Medium","precip_category":"Moderate"},
+  {"day":13,"day_label":"13th","temperature":23.52,"precipitation":6.98,"temp_category":"Medium","precip_category":"Moderate"},
+  {"day":14,"day_label":"14th","temperature":28.88,"precipitation":0.6,"temp_category":"High","precip_category":"Light"},
+  {"day":15,"day_label":"15th","temperature":16.07,"precipitation":6.67,"temp_category":"Low","precip_category":"Moderate"},
+  {"day":16,"day_label":"16th","temperature":16.31,"precipitation":6.71,"temp_category":"Low","precip_category":"Moderate"},
+  {"day":17,"day_label":"17th","temperature":15.3,"precipitation":2.1,"temp_category":"Low","precip_category":"Light"},
+  {"day":18,"day_label":"18th","temperature":27.49,"precipitation":1.29,"temp_category":"High","precip_category":"Light"},
+  {"day":19,"day_label":"19th","temperature":26.67,"precipitation":3.15,"temp_category":"High","precip_category":"Moderate"},
+  {"day":20,"day_label":"20th","temperature":28.05,"precipitation":3.64,"temp_category":"High","precip_category":"Moderate"},
+  {"day":21,"day_label":"21st","temperature":29.68,"precipitation":5.7,"temp_category":"High","precip_category":"Moderate"},
+  {"day":22,"day_label":"22nd","temperature":26.99,"precipitation":4.39,"temp_category":"High","precip_category":"Moderate"},
+  {"day":23,"day_label":"23rd","temperature":21.92,"precipitation":9.88,"temp_category":"Medium","precip_category":"Heavy"},
+  {"day":24,"day_label":"24th","temperature":26.71,"precipitation":1.02,"temp_category":"High","precip_category":"Light"},
+  {"day":25,"day_label":"25th","temperature":16.77,"precipitation":2.09,"temp_category":"Low","precip_category":"Light"},
+  {"day":26,"day_label":"26th","temperature":24.6,"precipitation":1.61,"temp_category":"Medium","precip_category":"Light"},
+  {"day":27,"day_label":"27th","temperature":17.15,"precipitation":6.53,"temp_category":"Low","precip_category":"Moderate"},
+  {"day":28,"day_label":"28th","temperature":29.17,"precipitation":2.53,"temp_category":"High","precip_category":"Moderate"},
+  {"day":29,"day_label":"29th","temperature":22.83,"precipitation":4.66,"temp_category":"Medium","precip_category":"Moderate"},
+  {"day":30,"day_label":"30th","temperature":21.22,"precipitation":2.44,"temp_category":"Medium","precip_category":"Light"}
+];
+
+const WEEKLY = [
+  {"week":1,"day_range":"1-7","avg_temperature":23.4,"avg_precipitation":4.73},
+  {"week":2,"day_range":"8-14","avg_temperature":25.83,"avg_precipitation":5.43},
+  {"week":3,"day_range":"15-21","avg_temperature":22.8,"avg_precipitation":4.18},
+  {"week":4,"day_range":"22-28","avg_temperature":23.33,"avg_precipitation":4.01},
+  {"week":5,"day_range":"29-30","avg_temperature":22.02,"avg_precipitation":3.55}
+];
+
+const TEMP_COUNTS = {"Low":5,"Medium":14,"High":11};
+const PRECIP_COUNTS = {"Light":8,"Moderate":19,"Heavy":3};
+const OVERALL = {
+  "avg_temperature":23.72,"avg_precipitation":4.52,
+  "min_temperature":{"day":17,"day_label":"17th","temperature":15.3},
+  "max_temperature":{"day":21,"day_label":"21st","temperature":29.68},
+  "min_precipitation":{"day":5,"day_label":"5th","precipitation":0.19},
+  "max_precipitation":{"day":23,"day_label":"23rd","precipitation":9.88},
+  "total_precipitation":135.51
+};
+
+function badge(kind, cat) {
+  return `<span class="badge badge-${kind}-${cat.toLowerCase()}">${cat}</span>`;
+}
+
+/* ---------- Stat tiles ---------- */
+document.getElementById('statAvgTemp').textContent = OVERALL.avg_temperature.toFixed(1) + '°C';
+document.getElementById('statAvgPrecip').textContent = OVERALL.avg_precipitation.toFixed(1) + 'mm';
+document.getElementById('statMaxTemp').textContent = OVERALL.max_temperature.temperature.toFixed(1) + '°C';
+document.getElementById('statMaxTempSub').textContent = 'Day ' + OVERALL.max_temperature.day_label;
+document.getElementById('statMaxPrecip').textContent = OVERALL.max_precipitation.precipitation.toFixed(1) + 'mm';
+document.getElementById('statMaxPrecipSub').textContent = 'Day ' + OVERALL.max_precipitation.day_label;
+
+/* ---------- Weekly table ---------- */
+const weeklyBody = document.getElementById('weeklyBody');
+WEEKLY.forEach(w => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>Week ${w.week}</td><td>Day ${w.day_range}</td><td class="num">${w.avg_temperature.toFixed(2)}</td><td class="num">${w.avg_precipitation.toFixed(2)}</td>`;
+  weeklyBody.appendChild(tr);
+});
+
+/* ---------- Category count tiles ---------- */
+const countGrid = document.getElementById('countGrid');
+const countDefs = [
+  {label:'Low temp days', value:TEMP_COUNTS.Low, cls:'badge-temp-low'},
+  {label:'Medium temp days', value:TEMP_COUNTS.Medium, cls:'badge-temp-medium'},
+  {label:'High temp days', value:TEMP_COUNTS.High, cls:'badge-temp-high'},
+  {label:'Light rain days', value:PRECIP_COUNTS.Light, cls:'badge-precip-light'},
+  {label:'Moderate rain days', value:PRECIP_COUNTS.Moderate, cls:'badge-precip-moderate'},
+  {label:'Heavy rain days', value:PRECIP_COUNTS.Heavy, cls:'badge-precip-heavy'},
+];
+countDefs.forEach(c => {
+  const tile = document.createElement('div');
+  tile.className = 'stat-tile';
+  tile.innerHTML = `<span class="stat-label">${c.label}</span><span class="stat-value">${c.value}</span><span class="stat-sub">of 30 days</span>`;
+  countGrid.appendChild(tile);
+});
+
+/* ---------- Sortable data table ---------- */
+const dataBody = document.getElementById('dataBody');
+function renderTable(rows) {
+  dataBody.innerHTML = '';
+  rows.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r.day_label}</td>
+      <td class="num">${r.temperature.toFixed(2)}°C</td>
+      <td>${badge('temp', r.temp_category)}</td>
+      <td class="num">${r.precipitation.toFixed(2)}mm</td>
+      <td>${badge('precip', r.precip_category)}</td>`;
+    dataBody.appendChild(tr);
+  });
+}
+renderTable(ROWS);
+
+document.querySelectorAll('.sort-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const key = btn.dataset.key, dir = btn.dataset.dir;
+    const sorted = [...ROWS].sort((a, b) => dir === 'asc' ? a[key] - b[key] : b[key] - a[key]);
+    renderTable(sorted);
+  });
+});
+
+/* ---------- Line chart: temperature ---------- */
+(function () {
+  const svg = document.getElementById('lineChart');
+  const tooltip = document.getElementById('lineTooltip');
+  const card = svg.closest('.chart-card');
+  const W = 780, H = 300, M = { top: 16, right: 16, bottom: 28, left: 36 };
+  const innerW = W - M.left - M.right, innerH = H - M.top - M.bottom;
+
+  const temps = ROWS.map(r => r.temperature);
+  const yMin = Math.floor(Math.min(...temps) / 5) * 5 - 2;
+  const yMax = Math.ceil(Math.max(...temps) / 5) * 5 + 2;
+  const x = i => M.left + (innerW * i) / (ROWS.length - 1);
+  const y = v => M.top + innerH - ((v - yMin) / (yMax - yMin)) * innerH;
+
+  const ns = 'http://www.w3.org/2000/svg';
+  const el = (tag, attrs) => {
+    const e = document.createElementNS(ns, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  };
+
+  // gridlines
+  const gridVals = [];
+  for (let v = Math.ceil(yMin / 5) * 5; v <= yMax; v += 5) gridVals.push(v);
+  gridVals.forEach(v => {
+    svg.appendChild(el('line', { class: 'grid-line', x1: M.left, x2: W - M.right, y1: y(v), y2: y(v) }));
+    svg.appendChild(el('text', { class: 'axis-label', x: 6, y: y(v) + 3 }));
+  });
+  gridVals.forEach(v => {
+    const t = svg.querySelectorAll('.axis-label')[gridVals.indexOf(v)];
+    t.textContent = v + '°';
+  });
+
+  // x-axis day labels every 5 days
+  ROWS.forEach((r, i) => {
+    if (r.day % 5 === 0 || r.day === 1) {
+      const t = el('text', { class: 'axis-label', x: x(i), y: H - 6, 'text-anchor': 'middle' });
+      t.textContent = r.day;
+      svg.appendChild(t);
+    }
+  });
+
+  // area fill
+  const gradId = 'tempGrad';
+  const defs = el('defs', {});
+  const grad = el('linearGradient', { id: gradId, x1: 0, y1: 0, x2: 0, y2: 1 });
+  grad.appendChild(el('stop', { offset: '0%', 'stop-color': 'var(--temp-fill-a)' }));
+  grad.appendChild(el('stop', { offset: '100%', 'stop-color': 'var(--temp-fill-b)' }));
+  defs.appendChild(grad);
+  svg.appendChild(defs);
+
+  let areaPath = `M ${x(0)} ${y(temps[0])}`;
+  temps.forEach((t, i) => { if (i > 0) areaPath += ` L ${x(i)} ${y(t)}`; });
+  areaPath += ` L ${x(temps.length - 1)} ${y(yMin)} L ${x(0)} ${y(yMin)} Z`;
+  svg.appendChild(el('path', { d: areaPath, fill: `url(#${gradId})`, stroke: 'none' }));
+
+  let linePath = `M ${x(0)} ${y(temps[0])}`;
+  temps.forEach((t, i) => { if (i > 0) linePath += ` L ${x(i)} ${y(t)}`; });
+  svg.appendChild(el('path', { d: linePath, fill: 'none', stroke: 'var(--temp-line)', 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+
+  // emphasized endpoint
+  const lastI = temps.length - 1;
+  svg.appendChild(el('circle', { cx: x(lastI), cy: y(temps[lastI]), r: 4, fill: 'var(--temp-line)' }));
+
+  // crosshair + hover dot
+  const crosshair = el('line', { class: 'crosshair', x1: 0, x2: 0, y1: M.top, y2: H - M.bottom });
+  const hoverDot = el('circle', { class: 'hover-dot', r: 4.5, fill: 'var(--surface)', stroke: 'var(--temp-line)', 'stroke-width': 2 });
+  svg.appendChild(crosshair);
+  svg.appendChild(hoverDot);
+
+  const hit = el('rect', { class: 'hit-col', x: M.left, y: M.top, width: innerW, height: innerH });
+  svg.appendChild(hit);
+
+  function showAt(i) {
+    const r = ROWS[i];
+    crosshair.setAttribute('x1', x(i));
+    crosshair.setAttribute('x2', x(i));
+    crosshair.setAttribute('opacity', 1);
+    hoverDot.setAttribute('cx', x(i));
+    hoverDot.setAttribute('cy', y(r.temperature));
+    hoverDot.setAttribute('opacity', 1);
+
+    tooltip.innerHTML = `<strong>Day ${r.day_label}</strong>${r.temperature.toFixed(2)}°C &middot; ${r.temp_category}`;
+    tooltip.style.opacity = 1;
+    const pt = svg.createSVGPoint();
+    pt.x = x(i); pt.y = y(r.temperature);
+    const ctm = svg.getScreenCTM();
+    const screenPt = pt.matrixTransform(ctm);
+    const cardRect = card.getBoundingClientRect();
+    tooltip.style.left = (screenPt.x - cardRect.left) + 'px';
+    tooltip.style.top = (screenPt.y - cardRect.top - 12) + 'px';
+  }
+  function hide() {
+    crosshair.setAttribute('opacity', 0);
+    hoverDot.setAttribute('opacity', 0);
+    tooltip.style.opacity = 0;
+  }
+  hit.addEventListener('mousemove', evt => {
+    const rect = svg.getBoundingClientRect();
+    const svgX = ((evt.clientX - rect.left) / rect.width) * W;
+    let i = Math.round(((svgX - M.left) / innerW) * (ROWS.length - 1));
+    i = Math.max(0, Math.min(ROWS.length - 1, i));
+    showAt(i);
+  });
+  hit.addEventListener('mouseleave', hide);
+})();
+
+/* ---------- Bar chart: precipitation ---------- */
+(function () {
+  const svg = document.getElementById('barChart');
+  const tooltip = document.getElementById('barTooltip');
+  const card = svg.closest('.chart-card');
+  const W = 780, H = 300, M = { top: 16, right: 16, bottom: 28, left: 36 };
+  const innerW = W - M.left - M.right, innerH = H - M.top - M.bottom;
+
+  const precs = ROWS.map(r => r.precipitation);
+  const yMax = Math.ceil(Math.max(...precs) / 2) * 2 + 1;
+  const barGap = 2;
+  const barW = innerW / ROWS.length - barGap;
+  const x = i => M.left + (innerW * i) / ROWS.length + barGap / 2;
+  const y = v => M.top + innerH - (v / yMax) * innerH;
+
+  const ns = 'http://www.w3.org/2000/svg';
+  const el = (tag, attrs) => {
+    const e = document.createElementNS(ns, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  };
+
+  const gridVals = [];
+  for (let v = 0; v <= yMax; v += 2) gridVals.push(v);
+  gridVals.forEach(v => {
+    svg.appendChild(el('line', { class: 'grid-line', x1: M.left, x2: W - M.right, y1: y(v), y2: y(v) }));
+    const t = el('text', { class: 'axis-label', x: 6, y: y(v) + 3 });
+    t.textContent = v;
+    svg.appendChild(t);
+  });
+
+  const colorFor = cat => cat === 'Light' ? 'var(--precip-light)' : cat === 'Moderate' ? 'var(--precip-moderate)' : 'var(--precip-heavy)';
+
+  const bars = [];
+  ROWS.forEach((r, i) => {
+    const bh = innerH - (y(r.precipitation) - M.top);
+    const rect = el('rect', {
+      class: 'bar-rect', x: x(i), y: y(r.precipitation),
+      width: Math.max(barW, 1), height: Math.max(bh, 0),
+      rx: 2, fill: colorFor(r.precip_category)
+    });
+    svg.appendChild(rect);
+    bars.push(rect);
+    if (r.day % 5 === 0 || r.day === 1) {
+      const t = el('text', { class: 'axis-label', x: x(i) + barW / 2, y: H - 6, 'text-anchor': 'middle' });
+      t.textContent = r.day;
+      svg.appendChild(t);
+    }
+  });
+
+  function show(evt, i) {
+    const r = ROWS[i];
+    bars.forEach(b => b.classList.remove('active'));
+    bars[i].classList.add('active');
+    tooltip.innerHTML = `<strong>Day ${r.day_label}</strong>${r.precipitation.toFixed(2)}mm &middot; ${r.precip_category}`;
+    tooltip.style.opacity = 1;
+    const pt = svg.createSVGPoint();
+    pt.x = x(i) + barW / 2; pt.y = y(r.precipitation);
+    const ctm = svg.getScreenCTM();
+    const screenPt = pt.matrixTransform(ctm);
+    const cardRect = card.getBoundingClientRect();
+    tooltip.style.left = (screenPt.x - cardRect.left) + 'px';
+    tooltip.style.top = (screenPt.y - cardRect.top - 10) + 'px';
+  }
+  function hide() {
+    bars.forEach(b => b.classList.remove('active'));
+    tooltip.style.opacity = 0;
+  }
+  bars.forEach((b, i) => {
+    b.addEventListener('mousemove', evt => show(evt, i));
+    b.addEventListener('mouseleave', hide);
+  });
+})();
+</script>
