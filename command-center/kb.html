@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Knowledge base — KPI Copilot Command Center</title>
+  <link rel="stylesheet" href="assets/tokens.css" />
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <header id="topbar" class="topbar"></header>
+  <nav id="tabnav" class="tabnav"></nav>
+
+  <main class="page">
+    <div class="sample-banner">SAMPLE DATA — switch to Real to search only real project data.</div>
+
+    <div class="page-header">
+      <h1>Knowledge base</h1>
+      <p>Everything the project knows about itself: requirements, stories, decisions, and notes. Grows for the whole programme.</p>
+    </div>
+
+    <div class="card">
+      <h2 class="card__title">Ask about this project</h2>
+      <p style="font-size:12px;color:var(--color-text-faint);margin:-6px 0 10px">Keyword search over the data on this page — not a general AI assistant. It answers from requirements, stories, releases, systems, and roles only, and says so when it can't find a match.</p>
+      <div class="chat-panel">
+        <div id="chat-log" class="chat-log"></div>
+        <form id="chat-form" class="chat-form">
+          <input id="chat-input" type="text" placeholder="e.g. what does REQ-013 require?" autocomplete="off" />
+          <button type="submit">Ask</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="two-col" style="margin-top:16px">
+      <div class="card">
+        <h2 class="card__title">On record</h2>
+        <ul class="status-list">
+          <li><a href="guardrails.html">18 requirements</a> (3 safety-critical)</li>
+          <li><a href="pm.html">14 stories</a> across 5 releases</li>
+          <li><span class="empty-state" style="padding:0">0 decisions logged</span></li>
+          <li id="notes-count-row"></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2 class="card__title">Notes</h2>
+        <p style="font-size:11px;color:var(--color-text-faint);margin-top:-6px">Stored in this browser only — not synced anywhere yet.</p>
+        <form id="note-form" class="note-form">
+          <input id="note-input" type="text" placeholder="Add a note..." autocomplete="off" />
+          <button type="submit">Add</button>
+        </form>
+        <div id="notes-list"></div>
+      </div>
+    </div>
+  </main>
+
+  <script src="assets/data.js"></script>
+  <script src="assets/common.js"></script>
+  <script src="assets/kb.js"></script>
+</body>
+</html>

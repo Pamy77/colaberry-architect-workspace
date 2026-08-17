@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KPI Copilot — Command Center</title>
+  <link rel="stylesheet" href="assets/tokens.css" />
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <header id="topbar" class="topbar"></header>
+  <nav id="tabnav" class="tabnav"></nav>
+
+  <main class="page">
+    <div class="sample-banner">SAMPLE DATA — this screen is showing made-up illustrative numbers, not real project data. Switch to Real to see what actually exists.</div>
+
+    <section id="release-state" class="card"></section>
+
+    <div id="stat-grid" class="stat-grid"></div>
+
+    <div class="two-col">
+      <div class="card">
+        <h2 class="card__title">Live</h2>
+        <ul id="live-list" class="status-list"></ul>
+      </div>
+      <div class="card">
+        <h2 class="card__title">Not live yet</h2>
+        <ul id="not-live-list" class="status-list"></ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="card__title">Release timeline</h2>
+      <div id="timeline" class="timeline"></div>
+      <div id="timeline-markers" class="timeline__marker"></div>
+    </div>
+  </main>
+
+  <script src="assets/data.js"></script>
+  <script src="assets/common.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

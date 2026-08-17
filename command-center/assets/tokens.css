@@ -1,0 +1,38 @@
+/**
+ * Design tokens for the KPI Copilot Command Center.
+ *
+ * No brand colours have been chosen for this project yet (see
+ * docs/workflow-plan.md). This file is the ONE place that will need to
+ * change when they are — every component below reads color through these
+ * variables, never a hex code directly.
+ */
+:root {
+  /* Neutral placeholder palette — swap when brand colours are chosen */
+  --color-bg: #f5f6f8;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f0f1f4;
+  --color-border: #dde1e6;
+  --color-text: #1c2126;
+  --color-text-muted: #5b6470;
+  --color-text-faint: #8a929e;
+  --color-accent: #2f3b52;
+  --color-accent-soft: #e7eaf0;
+
+  /* Status colors — used only for live indicators, never decoration */
+  --color-status-connected: #1e8a5f;
+  --color-status-connected-bg: #e5f4ee;
+  --color-status-error: #b3441e;
+  --color-status-error-bg: #fbeae3;
+  --color-status-unknown: #8a929e;
+  --color-status-unknown-bg: #eceef1;
+
+  /* Sample-data flag color — deliberately distinct from status colors */
+  --color-sample: #9a6b17;
+  --color-sample-bg: #fbf1de;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --shadow-card: 0 1px 2px rgba(28, 33, 38, 0.06), 0 1px 1px rgba(28, 33, 38, 0.04);
+
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}

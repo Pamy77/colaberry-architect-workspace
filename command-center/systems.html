@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Systems — KPI Copilot Command Center</title>
+  <link rel="stylesheet" href="assets/tokens.css" />
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <header id="topbar" class="topbar"></header>
+  <nav id="tabnav" class="tabnav"></nav>
+
+  <main class="page">
+    <div class="sample-banner">SAMPLE DATA — switch to Real to see the actual connection status.</div>
+
+    <div class="page-header">
+      <h1>Systems</h1>
+      <p>What this connects to. None of these are connected on day one — the indicator shows that honestly rather than defaulting to green.</p>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>System</th><th>Status</th><th>Last checked</th></tr></thead>
+          <tbody id="systems-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="assets/data.js"></script>
+  <script src="assets/common.js"></script>
+  <script src="assets/systems.js"></script>
+</body>
+</html>

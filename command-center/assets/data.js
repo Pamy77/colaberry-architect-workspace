@@ -1,0 +1,366 @@
+/**
+ * Single source of data for the KPI Copilot Command Center.
+ * Every tab reads from this file. Nothing here is invented — it is
+ * transcribed from docs/workflow-plan.md and the project plan. Where the
+ * plan has not defined something yet (numeric targets, connected systems,
+ * agent skills), that is represented explicitly rather than filled in.
+ *
+ * Cross-references not literally spelled out in the plan (story <-> requirement
+ * links, role <-> story/requirement links) are computed here from exact
+ * matches (an owner field equal to a role name, a requirement's own wording)
+ * and are tagged "explicit" or "inferred" so every page can show its work
+ * instead of presenting a guess as a stated fact.
+ *
+ * `sample` holds illustrative, clearly-fake data used only when the
+ * Sample/Real switch is set to Sample. `real` values are what the project
+ * has actually produced as of today.
+ */
+window.KPI_COPILOT_DATA = {
+  product: {
+    name: "Small Business KPI Copilot",
+    tagline:
+      "Automates data processing from Excel/CSV uploads to generate actionable business insights and alerts for small business owners.",
+  },
+
+  timeline: {
+    buildEnds: "2026-10-01",
+    demoDay: "2026-10-08",
+  },
+
+  releases: [
+    {
+      id: "r0",
+      name: "Initial Data Processing and KPI Calculation",
+      storyCount: 3,
+      start: "2026-08-16",
+      end: "2026-08-23",
+      stories: ["STORY-001", "STORY-002", "STORY-011"],
+    },
+    {
+      id: "r1",
+      name: "Dashboard and Insights",
+      storyCount: 3,
+      start: "2026-08-26",
+      end: "2026-09-02",
+      stories: ["STORY-003", "STORY-004", "STORY-012"],
+    },
+    {
+      id: "r2",
+      name: "Integrations and Subscription Management",
+      storyCount: 2,
+      start: "2026-09-07",
+      end: "2026-09-11",
+      stories: ["STORY-005", "STORY-006"],
+    },
+    {
+      id: "r3",
+      name: "Advanced Error Handling and Reporting",
+      storyCount: 3,
+      start: "2026-09-15",
+      end: "2026-09-21",
+      stories: ["STORY-007", "STORY-008", "STORY-013"],
+    },
+    {
+      id: "r4",
+      name: "User Feedback and Experience Enhancements",
+      storyCount: 3,
+      start: "2026-09-24",
+      end: "2026-10-01",
+      stories: ["STORY-009", "STORY-010", "STORY-014"],
+    },
+  ],
+
+  // relatedRequirements: cross-references derived by matching this story's
+  // title/purpose against requirement wording. "explicit" = the story title
+  // is close to a paraphrase of the requirement text. "inferred" = thematically
+  // connected but not a title match — a judgment call, shown as one.
+  stories: [
+    { id: "STORY-001", title: "Upload and Clean Data", due: "2026-08-16", release: "r0", owner: "Data Processing Team",
+      relatedRequirements: [{ id: "REQ-001", confidence: "explicit" }, { id: "REQ-002", confidence: "explicit" }] },
+    { id: "STORY-002", title: "Calculate KPIs", due: "2026-08-20", release: "r0", owner: "Data Processing Team",
+      relatedRequirements: [{ id: "REQ-003", confidence: "explicit" }, { id: "REQ-009", confidence: "inferred" }] },
+    { id: "STORY-011", title: "Establish Trust Spine for Data Processing", due: "2026-08-23", release: "r0", owner: "System Administrator",
+      relatedRequirements: [{ id: "REQ-017", confidence: "inferred" }] },
+    { id: "STORY-003", title: "Display Dashboard", due: "2026-08-26", release: "r1", owner: "UI/UX Team",
+      relatedRequirements: [{ id: "REQ-004", confidence: "explicit" }, { id: "REQ-014", confidence: "inferred" }] },
+    { id: "STORY-004", title: "Send Alerts and Insights", due: "2026-08-29", release: "r1", owner: "Notification Team",
+      relatedRequirements: [{ id: "REQ-005", confidence: "explicit" }] },
+    { id: "STORY-012", title: "Verify KPI Changes Before Alerting", due: "2026-09-02", release: "r1", owner: "Business Analyst",
+      relatedRequirements: [{ id: "REQ-013", confidence: "explicit" }] },
+    { id: "STORY-005", title: "Synchronize Financial Data for Accurate Reporting", due: "2026-09-07", release: "r2", owner: "Financial Analyst",
+      relatedRequirements: [{ id: "REQ-015", confidence: "inferred" }] },
+    { id: "STORY-006", title: "Manage Subscription Plans", due: "2026-09-11", release: "r2", owner: "Billing Team",
+      relatedRequirements: [{ id: "REQ-007", confidence: "explicit" }] },
+    { id: "STORY-007", title: "Handle KPI Calculation Uncertainty", due: "2026-09-15", release: "r3", owner: "Data Processing Team",
+      relatedRequirements: [{ id: "REQ-008", confidence: "explicit" }] },
+    { id: "STORY-008", title: "Generate Summary Reports", due: "2026-09-18", release: "r3", owner: "Reporting Team",
+      relatedRequirements: [{ id: "REQ-012", confidence: "explicit" }] },
+    { id: "STORY-013", title: "Generate Detailed Reports for Analysts", due: "2026-09-21", release: "r3", owner: "Analyst",
+      relatedRequirements: [{ id: "REQ-016", confidence: "explicit" }] },
+    { id: "STORY-009", title: "Collect User Feedback on Insights", due: "2026-09-24", release: "r4", owner: "User Experience Team",
+      relatedRequirements: [{ id: "REQ-011", confidence: "explicit" }] },
+    { id: "STORY-010", title: "Enhance User Interface for Simplicity", due: "2026-09-28", release: "r4", owner: "UI/UX Team",
+      relatedRequirements: [{ id: "REQ-014", confidence: "explicit" }, { id: "REQ-018", confidence: "inferred" }] },
+    { id: "STORY-014", title: "Maintain Record of Insights with Undo Capability", due: "2026-10-01", release: "r4", owner: "User",
+      relatedRequirements: [{ id: "REQ-010", confidence: "explicit" }] },
+  ],
+
+  requirements: [
+    { id: "REQ-001", type: "FUNC", priority: "must", text: "The system must allow users to upload Excel or CSV files for data processing." },
+    { id: "REQ-002", type: "FUNC", priority: "must", text: "The system must clean and preprocess uploaded data to ensure accuracy." },
+    { id: "REQ-003", type: "FUNC", priority: "must", text: "The system must calculate KPIs from the cleaned data." },
+    { id: "REQ-004", type: "FUNC", priority: "must", text: "The system must generate a dashboard displaying calculated KPIs and insights." },
+    { id: "REQ-005", type: "FUNC", priority: "must", text: "The system must send alerts and actionable insights to users via email and Slack." },
+    { id: "REQ-006", type: "CONSTRAINT", priority: "must", text: "The system must integrate with Excel, Google Sheets, Slack, Gmail, Outlook, QuickBooks, Dropbox, and Google Drive." },
+    { id: "REQ-007", type: "FUNC", priority: "must", text: "The system must provide subscription plans with different upload limits: Free, $9/month, $19/month, $39/month, $79/month." },
+    { id: "REQ-008", type: "FUNC", priority: "must", text: "The system must stop and ask for clarification when unsure about a KPI calculation or insight." },
+    { id: "REQ-009", type: "FUNC", priority: "must", text: "The system must assign an evidence level to each KPI: high, medium, or low confidence." },
+    { id: "REQ-010", type: "SAFE", priority: "must", text: "The system must maintain a record of insights and allow users to undo changes." },
+    { id: "REQ-011", type: "FUNC", priority: "must", text: "The system must provide user feedback mechanisms on insight accuracy." },
+    { id: "REQ-012", type: "FUNC", priority: "must", text: "The system must generate summary reports showing decisions made." },
+    { id: "REQ-013", type: "SAFE", priority: "must", text: "The system must verify significant drops or increases in KPIs before sending alerts." },
+    { id: "REQ-014", type: "NFR", priority: "must", text: "The system must support users with limited tech skills through simple dashboards." },
+    { id: "REQ-015", type: "FUNC", priority: "must", text: "The system must handle data from customer feedback, sales trends, inventory levels, recurring revenue metrics, business facts, and subscription history." },
+    { id: "REQ-016", type: "FUNC", priority: "must", text: "The system must provide detailed reports for teams of analysts." },
+    { id: "REQ-017", type: "SAFE", priority: "must", text: "The system must ensure data accuracy and integrity throughout the process." },
+    { id: "REQ-018", type: "NFR", priority: "must", text: "Every data upload screen must allow users to complete the upload process in three steps or fewer." },
+  ],
+
+  guardrails: ["REQ-010", "REQ-013", "REQ-017"],
+
+  // Short plain-English note on why each guardrail's expected story link was
+  // drawn the way it was. Shown on the guardrail detail page.
+  guardrailNotes: {
+    "REQ-010": "STORY-014's title (\"Maintain Record of Insights with Undo Capability\") is close to a direct paraphrase of this requirement.",
+    "REQ-013": "STORY-012's title (\"Verify KPI Changes Before Alerting\") is close to a direct paraphrase of this requirement.",
+    "REQ-017": "No story title matches this one as directly. STORY-011 (\"Establish Trust Spine for Data Processing\") is the closest thematic fit in r0 — treat this link as inferred, not stated in the plan.",
+  },
+
+  systems: [
+    { name: "Excel", status: "not_connected", lastChecked: null },
+    { name: "Google Sheets", status: "not_connected", lastChecked: null },
+    { name: "Slack", status: "not_connected", lastChecked: null },
+    { name: "Gmail", status: "not_connected", lastChecked: null },
+    { name: "Outlook", status: "not_connected", lastChecked: null },
+    { name: "QuickBooks", status: "not_connected", lastChecked: null },
+    { name: "Dropbox", status: "not_connected", lastChecked: null },
+    { name: "Google Drive", status: "not_connected", lastChecked: null },
+  ],
+
+  roles: [
+    "business owner",
+    "financial analyst",
+    "business owner with limited tech skills",
+    "system administrator",
+    "business analyst",
+    "analyst",
+  ],
+
+  // roleLinks: how each role connects to the rest of the plan, computed two
+  // ways only — (a) a story whose owner field is an exact, case-insensitive
+  // match for the role name, or (b) a requirement whose own text names the
+  // role. Where neither exists, that is shown as an empty state rather than
+  // guessed at.
+  roleLinks: {
+    "business owner": { stories: [], requirements: [] },
+    "financial analyst": { stories: ["STORY-005"], requirements: [] },
+    "business owner with limited tech skills": { stories: [], requirements: ["REQ-014"] },
+    "system administrator": { stories: ["STORY-011"], requirements: [] },
+    "business analyst": { stories: ["STORY-012"], requirements: [] },
+    "analyst": { stories: ["STORY-013"], requirements: ["REQ-016"] },
+  },
+
+  owners: [
+    { name: "Data Processing Team", stories: ["STORY-001", "STORY-002", "STORY-007"] },
+    { name: "UI/UX Team", stories: ["STORY-003", "STORY-010"] },
+    { name: "Notification Team", stories: ["STORY-004"] },
+    { name: "Financial Analyst", stories: ["STORY-005"] },
+    { name: "Billing Team", stories: ["STORY-006"] },
+    { name: "Reporting Team", stories: ["STORY-008"] },
+    { name: "User Experience Team", stories: ["STORY-009"] },
+    { name: "System Administrator", stories: ["STORY-011"] },
+    { name: "Business Analyst", stories: ["STORY-012"] },
+    { name: "Analyst", stories: ["STORY-013"] },
+    { name: "User", stories: ["STORY-014"] },
+  ],
+
+  tabs: [
+    { id: "overview", label: "Overview", built: true, href: "index.html" },
+    { id: "outcomes", label: "Outcomes", built: true, href: "outcomes.html" },
+    { id: "users", label: "Users and use case", built: true, href: "users.html" },
+    { id: "guardrails", label: "Guardrails", built: true, href: "guardrails.html" },
+    { id: "systems", label: "Systems", built: true, href: "systems.html" },
+    { id: "pm", label: "Project management", built: true, href: "pm.html" },
+    { id: "agents", label: "AI agents", built: true, href: "agents.html" },
+    { id: "kb", label: "Knowledge base", built: true, href: "kb.html" },
+    { id: "datamodel", label: "Data model", built: true, href: "datamodel.html" },
+  ],
+
+  // Draft data model — a proposal for review, not tables that have been
+  // created. relatedRequirements again distinguishes explicit vs inferred.
+  dataModel: {
+    entities: [
+      { name: "Business", purpose: "One small-business account using the Copilot.",
+        fields: [
+          { name: "id", type: "uuid", note: "primary key" },
+          { name: "name", type: "text" },
+          { name: "owner_name", type: "text", note: "the business owner" },
+          { name: "subscription_plan_id", type: "uuid", note: "FK -> SubscriptionPlan" },
+          { name: "created_at", type: "timestamp" },
+        ],
+        relatedRequirements: [{ id: "REQ-007", confidence: "inferred" }] },
+      { name: "SubscriptionPlan", purpose: "One of the five pricing tiers and its upload limit.",
+        fields: [
+          { name: "id", type: "uuid" },
+          { name: "name", type: "text", note: "Free, $9/mo, $19/mo, $39/mo, $79/mo" },
+          { name: "monthly_price_usd", type: "integer" },
+          { name: "upload_limit", type: "integer" },
+        ],
+        relatedRequirements: [{ id: "REQ-007", confidence: "explicit" }] },
+      { name: "Integration", purpose: "Connection status of one external system for one business.",
+        fields: [
+          { name: "id", type: "uuid" },
+          { name: "business_id", type: "uuid", note: "FK -> Business" },
+          { name: "system_name", type: "text", note: "Excel, Google Sheets, Slack, Gmail, Outlook, QuickBooks, Dropbox, Google Drive" },
+          { name: "status", type: "text", note: "connected / not_connected / error" },
+          { name: "last_checked_at", type: "timestamp", note: "nullable" },
+        ],
+        relatedRequirements: [{ id: "REQ-006", confidence: "explicit" }] },
+      { name: "DataUpload", purpose: "One Excel/CSV/Sheets upload event.",
+        fields: [
+          { name: "id", type: "uuid" },
+          { name: "business_id", type: "uuid" },
+          { name: "source_type", type: "text", note: "excel / csv / google_sheets / quickbooks" },
+          { name: "uploaded_at", type: "timestamp" },
+          { name: "status", type: "text", note: "pending / cleaned / failed" },
+          { name: "row_count", type: "integer" },
+        ],
+        relatedRequirements: [{ id: "REQ-001", confidence: "explicit" }, { id: "REQ-018", confidence: "explicit" }] },
+      { name: "DataRecord", purpose: "One cleaned data point from an upload (customer feedback, sales trends, inventory levels, recurring revenue, business facts, or subscription history).",
+        fields: [
+          { name: "id", type: "uuid" },
+          { name: "upload_id", type: "uuid", note: "FK -> DataUpload" },
+          { name: "category", type: "text" },
+          { name: "period", type: "date" },
+          { name: "payload", type: "jsonb", note: "category-specific fields" },
+        ],
+        relatedRequirements: [{ id: "REQ-002", confidence: "explicit" }, { id: "REQ-015", confidence: "explicit" }, { id: "REQ-017", confidence: "inferred" }] },
+      { name: "KPI", purpose: "One calculated KPI for a business and period, with its confidence level.",
+        fields: [
+          { name: "id", type: "uuid" },
+          { name: "business_id", type: "uuid" },
+          { name: "period", type: "date" },
+          { name: "name", type: "text" },
+          { name: "value", type: "numeric" },
+          { name: "evidence_level", type: "text", note: "high / medium / low" },
+          { name: "calculated_at", type: "timestamp" },
+        ],
+        relatedRequirements: [{ id: "REQ-003", confidence: "explicit" }, { id: "REQ-009", confidence: "explicit" }] },
+      { name: "Insight", purpose: "One actionable insight derived from one or more KPIs.",
+        fields: [
+          { name: "id", type: "uuid" },
+          { name: "business_id", type: "uuid" },
+          { name: "kpi_id", type: "uuid", note: "nullable FK -> KPI" },
+          { name: "headline", type: "text" },
+          { name: "detail", type: "text" },
+          { name: "confidence", type: "numeric" },
+          { name: "status", type: "text", note: "active / undone" },
+          { name: "created_at", type: "timestamp" },
+        ],
+        relatedRequirements: [{ id: "REQ-004", confidence: "explicit" }, { id: "REQ-010", confidence: "inferred" }] },
+      { name: "InsightRevision", purpose: "One change to an insight's status — the undo history REQ-010 requires.",
+        fields: [
+          { name: "id", type: "uuid" },
+          { name: "insight_id", type: "uuid" },
+          { name: "changed_at", type: "timestamp" },
+          { name: "changed_by", type: "uuid", note: "FK -> AppUser" },
+          { name: "previous_status", type: "text" },
+          { name: "new_status", type: "text" },
+          { name: "reason", type: "text", note: "nullable" },
+        ],
+        relatedRequirements: [{ id: "REQ-010", confidence: "explicit" }] },
+      { name: "Clarification", purpose: "A flag raised when the system is unsure about a KPI or insight and needs a person to resolve it.",
+        fields: [
+          { name: "id", type: "uuid" },
+          { name: "business_id", type: "uuid" },
+          { name: "kpi_id", type: "uuid", note: "nullable" },
+          { name: "insight_id", type: "uuid", note: "nullable" },
+          { name: "reason", type: "text" },
+          { name: "status", type: "text", note: "pending / resolved" },
+          { name: "raised_at", type: "timestamp" },
+          { name: "resolved_at", type: "timestamp", note: "nullable" },
+        ],
+        relatedRequirements: [{ id: "REQ-008", confidence: "explicit" }] },
+      { name: "Alert", purpose: "One notification actually sent for an insight, after the REQ-013 verification step.",
+        fields: [
+          { name: "id", type: "uuid" },
+          { name: "insight_id", type: "uuid" },
+          { name: "channel", type: "text", note: "email / slack" },
+          { name: "verified", type: "boolean" },
+          { name: "verification_note", type: "text", note: "nullable" },
+          { name: "sent_at", type: "timestamp" },
+          { name: "recipient", type: "text" },
+        ],
+        relatedRequirements: [{ id: "REQ-005", confidence: "explicit" }, { id: "REQ-013", confidence: "explicit" }] },
+      { name: "UserFeedback", purpose: "A person's rating/comment on whether an insight was accurate.",
+        fields: [
+          { name: "id", type: "uuid" },
+          { name: "insight_id", type: "uuid" },
+          { name: "submitted_by", type: "uuid", note: "FK -> AppUser" },
+          { name: "accurate", type: "boolean" },
+          { name: "comment", type: "text", note: "nullable" },
+          { name: "submitted_at", type: "timestamp" },
+        ],
+        relatedRequirements: [{ id: "REQ-011", confidence: "explicit" }] },
+      { name: "SummaryReport", purpose: "A generated report — the plain-English summary (REQ-012) or the detailed analyst version (REQ-016).",
+        fields: [
+          { name: "id", type: "uuid" },
+          { name: "business_id", type: "uuid" },
+          { name: "period", type: "date" },
+          { name: "report_type", type: "text", note: "summary / detailed" },
+          { name: "generated_at", type: "timestamp" },
+          { name: "content_ref", type: "text", note: "pointer to stored report content" },
+        ],
+        relatedRequirements: [{ id: "REQ-012", confidence: "explicit" }, { id: "REQ-016", confidence: "explicit" }] },
+      { name: "AppUser", purpose: "A person who can log in — carries a role (business owner, financial analyst, business analyst, analyst, system administrator).",
+        fields: [
+          { name: "id", type: "uuid" },
+          { name: "business_id", type: "uuid" },
+          { name: "name", type: "text" },
+          { name: "email", type: "text" },
+          { name: "role", type: "text" },
+        ],
+        relatedRequirements: [{ id: "REQ-014", confidence: "inferred" }] },
+    ],
+    relationships: [
+      { from: "Business", to: "SubscriptionPlan", cardinality: "*..1", note: "each business is on one plan" },
+      { from: "Business", to: "Integration", cardinality: "1..*", note: "one row per external system" },
+      { from: "Business", to: "DataUpload", cardinality: "1..*" },
+      { from: "DataUpload", to: "DataRecord", cardinality: "1..*" },
+      { from: "Business", to: "KPI", cardinality: "1..*" },
+      { from: "KPI", to: "Insight", cardinality: "1..*" },
+      { from: "Insight", to: "InsightRevision", cardinality: "1..*", note: "undo history" },
+      { from: "Insight", to: "Alert", cardinality: "1..*" },
+      { from: "Insight", to: "UserFeedback", cardinality: "1..*" },
+      { from: "KPI", to: "Clarification", cardinality: "1..*" },
+      { from: "Business", to: "SummaryReport", cardinality: "1..*" },
+      { from: "Business", to: "AppUser", cardinality: "1..*" },
+    ],
+  },
+
+  // Illustrative only. Never shown unless the Sample/Real switch is set to
+  // Sample, and always labelled SAMPLE wherever it appears.
+  sample: {
+    systemsConnected: 3,
+    live: [
+      "File upload wizard (sample)",
+      "KPI dashboard preview (sample)",
+      "Slack alert delivery (sample)",
+    ],
+    outcomes: [
+      { name: "Weekly report open rate", current: "62%", target: "80%", trend: "up" },
+      { name: "Insights needing manual correction", current: "4 / week", target: "< 2 / week", trend: "down" },
+      { name: "Time from upload to first insight", current: "18 min", target: "< 10 min", trend: "flat" },
+    ],
+  },
+};

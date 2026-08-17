@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Data model — KPI Copilot Command Center</title>
+  <link rel="stylesheet" href="assets/tokens.css" />
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <header id="topbar" class="topbar"></header>
+  <nav id="tabnav" class="tabnav"></nav>
+
+  <main class="page">
+    <div class="sample-banner">SAMPLE DATA — switch to Real; this tab is a draft proposal either way, see the note below.</div>
+
+    <div class="page-header">
+      <h1>Data model</h1>
+      <p><strong>This is a draft for review, not tables that have been created.</strong> Each entity below is derived from a requirement (see its detail page for which one and how directly). Nothing has been built against this schema yet.</p>
+    </div>
+
+    <div id="entities-grid" class="card-grid"></div>
+
+    <div class="card" style="margin-top:16px">
+      <h2 class="card__title">Relationships (draft)</h2>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>From</th><th>Cardinality</th><th>To</th><th>Note</th></tr></thead>
+          <tbody id="relationships-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="assets/data.js"></script>
+  <script src="assets/common.js"></script>
+  <script src="assets/datamodel.js"></script>
+</body>
+</html>

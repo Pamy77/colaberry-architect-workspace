@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Guardrails — KPI Copilot Command Center</title>
+  <link rel="stylesheet" href="assets/tokens.css" />
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <header id="topbar" class="topbar"></header>
+  <nav id="tabnav" class="tabnav"></nav>
+
+  <main class="page">
+    <div class="sample-banner">SAMPLE DATA — switch to Real to see only what the plan actually says.</div>
+
+    <div class="page-header">
+      <h1>Guardrails</h1>
+      <p>What must never happen. These are the promises the system makes — and whether anything in the build currently enforces them.</p>
+    </div>
+
+    <div id="guardrails-list"></div>
+  </main>
+
+  <script src="assets/data.js"></script>
+  <script src="assets/common.js"></script>
+  <script src="assets/guardrails.js"></script>
+</body>
+</html>
