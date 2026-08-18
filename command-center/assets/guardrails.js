@@ -1,9 +1,10 @@
 (function () {
   "use strict";
 
-  var DATA = CC.DATA;
+  var DATA;
 
   function render() {
+    DATA = CC.DATA;
     var el = document.getElementById("guardrails-list");
     if (DATA.guardrails.length === 0) {
       el.innerHTML = '<div class="card"><p class="empty-state">The plan has no SAFE requirement. This tab has nothing to show until one is added.</p></div>';

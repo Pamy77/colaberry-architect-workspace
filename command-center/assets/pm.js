@@ -1,13 +1,14 @@
 (function () {
   "use strict";
 
-  var DATA = CC.DATA;
+  var DATA;
 
   function pct(date, min, max) {
     return ((date - min) / (max - min)) * 100;
   }
 
   function render() {
+    DATA = CC.DATA;
     var today = new Date();
     today.setHours(0, 0, 0, 0);
     var cur = CC.currentRelease(today);

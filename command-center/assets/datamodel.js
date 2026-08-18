@@ -1,9 +1,10 @@
 (function () {
   "use strict";
 
-  var DATA = CC.DATA;
+  var DATA;
 
   function render() {
+    DATA = CC.DATA;
     var entitiesEl = document.getElementById("entities-grid");
     entitiesEl.innerHTML = DATA.dataModel.entities
       .map(function (e) {

@@ -1,0 +1,13 @@
+{
+  "systems": [
+    { "name": "Excel", "status": "not_connected", "lastChecked": null },
+    { "name": "Google Sheets", "status": "not_connected", "lastChecked": null },
+    { "name": "Slack", "status": "not_connected", "lastChecked": null },
+    { "name": "Gmail", "status": "not_connected", "lastChecked": null },
+    { "name": "Outlook", "status": "not_connected", "lastChecked": null },
+    { "name": "QuickBooks", "status": "not_connected", "lastChecked": null },
+    { "name": "Dropbox", "status": "not_connected", "lastChecked": null },
+    { "name": "Google Drive", "status": "not_connected", "lastChecked": null }
+  ],
+  "live": []
+}

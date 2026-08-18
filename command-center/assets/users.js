@@ -1,9 +1,10 @@
 (function () {
   "use strict";
 
-  var DATA = CC.DATA;
+  var DATA;
 
   function render() {
+    DATA = CC.DATA;
     var el = document.getElementById("roles-grid");
     el.innerHTML = DATA.roles
       .map(function (role) {

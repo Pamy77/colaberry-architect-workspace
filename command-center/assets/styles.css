@@ -120,6 +120,34 @@ a {
   padding: 28px 24px 64px;
 }
 
+.freshness-banner {
+  font-size: 12px;
+  color: var(--color-text-faint);
+  padding: 6px 0 14px;
+}
+
+.freshness-banner--stale {
+  color: var(--color-sample);
+  font-weight: 600;
+}
+
+.load-error {
+  background: var(--color-status-error-bg);
+  color: var(--color-status-error);
+  border: 1px solid var(--color-status-error);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+.load-error code {
+  background: rgba(0, 0, 0, 0.06);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
 .sample-banner {
   display: none;
   align-items: center;

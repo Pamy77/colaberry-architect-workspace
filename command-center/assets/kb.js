@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var DATA = CC.DATA;
+  var DATA;
   var NOTES_KEY = "kpicc_notes";
   var STOPWORDS = ["what", "does", "the", "is", "are", "a", "an", "of", "for", "to", "in", "on", "how", "do", "did", "this",
     "system", "must", "and", "with", "about", "tell", "me"];
@@ -122,7 +122,8 @@
     renderNotes();
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
+  CC.whenReady(function () {
+    DATA = CC.DATA;
     var index = buildIndex();
 
     appendMsg("Knowledge base", "Ask about any requirement, story, release, system, or role on this page. I only answer from that data.");

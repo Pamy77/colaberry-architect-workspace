@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var DATA = CC.DATA;
+  var DATA;
 
   function statusDot(status) {
     var cls = status === "connected" ? "dot dot--connected" : status === "error" ? "dot dot--error" : "dot";
@@ -9,6 +9,7 @@
   }
 
   function render(mode) {
+    DATA = CC.DATA;
     var el = document.getElementById("systems-body");
     el.innerHTML = DATA.systems
       .map(function (sys, i) {

@@ -1,11 +1,8 @@
 (function () {
   "use strict";
 
-  var DATA = CC.DATA;
+  var DATA;
   var TAB_LABELS = {};
-  DATA.tabs.forEach(function (t) {
-    TAB_LABELS[t.id] = t.label;
-  });
 
   function statusDot(status) {
     var cls = status === "connected" ? "dot dot--connected" : status === "error" ? "dot dot--error" : "dot";
@@ -172,7 +169,7 @@
       '<div class="card"><h2 class="card__title">What has to happen before this tab has real cards</h2>' +
       "<ol style=\"font-size:13px;color:var(--color-text-muted);padding-left:18px\">" +
       "<li>Agree on the north-star metric(s) this project has to move, with a number and a timeframe.</li>" +
-      "<li>Add each one to <code>assets/data.js</code> as an outcome with a baseline, a target, and how it's measured.</li>" +
+      "<li>Add each one to <code>.colaberry/plan.json</code> as an outcome with a baseline, a target, and how it's measured.</li>" +
       "<li>Wire the outcome to whichever story or release is meant to move it.</li>" +
       "</ol></div>"
     );
@@ -183,6 +180,12 @@
   }
 
   function render() {
+    DATA = CC.DATA;
+    TAB_LABELS = {};
+    DATA.tabs.forEach(function (t) {
+      TAB_LABELS[t.id] = t.label;
+    });
+
     var params = CC.qs();
     var type = params.get("type");
     var id = params.get("id");

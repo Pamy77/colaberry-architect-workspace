@@ -1,13 +1,14 @@
 (function () {
   "use strict";
 
-  var DATA = CC.DATA;
+  var DATA;
 
   function trendArrow(trend) {
     return { up: "↑", down: "↓", flat: "→" }[trend] || "";
   }
 
   function render(mode) {
+    DATA = CC.DATA;
     var el = document.getElementById("outcomes-body");
 
     if (mode === "sample") {

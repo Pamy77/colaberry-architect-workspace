@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var DATA = CC.DATA;
+  var DATA;
 
   function stat(value, label, sublabel, isSample) {
     return (
@@ -14,6 +14,7 @@
   }
 
   function renderOverview(mode) {
+    DATA = CC.DATA;
     var today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -58,6 +59,12 @@
       liveEl.innerHTML = DATA.sample.live
         .map(function (item) {
           return '<li><span class="dot dot--connected"></span>' + item + '<span class="stat__tag">SAMPLE</span></li>';
+        })
+        .join("");
+    } else if (DATA.liveReal && DATA.liveReal.length > 0) {
+      liveEl.innerHTML = DATA.liveReal
+        .map(function (item) {
+          return '<li><span class="dot dot--connected"></span>' + CC.escapeHtml(item) + "</li>";
         })
         .join("");
     } else {
