@@ -12,9 +12,14 @@
     "test": "jest"
   },
   "dependencies": {
+    "csv-parse": "^7.0.2",
+    "exceljs": "^4.4.0",
     "express": "^4.19.2",
     "multer": "^2.2.0",
     "zod": "^3.23.8"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
