@@ -1,13 +1,401 @@
 {
-  "systems": [
-    { "name": "Excel", "status": "not_connected", "lastChecked": null },
-    { "name": "Google Sheets", "status": "not_connected", "lastChecked": null },
-    { "name": "Slack", "status": "not_connected", "lastChecked": null },
-    { "name": "Gmail", "status": "not_connected", "lastChecked": null },
-    { "name": "Outlook", "status": "not_connected", "lastChecked": null },
-    { "name": "QuickBooks", "status": "not_connected", "lastChecked": null },
-    { "name": "Dropbox", "status": "not_connected", "lastChecked": null },
-    { "name": "Google Drive", "status": "not_connected", "lastChecked": null }
-  ],
-  "live": []
+  "schema_version": 2,
+  "project": "Small Business KPI Copilot",
+  "totals": {
+    "stories_total": 15,
+    "stories_verified": 0,
+    "stories_submitted": 0,
+    "stories_in_progress": 0,
+    "stories_not_started": 15,
+    "criteria_total": 47,
+    "criteria_passed": 0,
+    "points_awarded": 0
+  },
+  "stories": [
+    {
+      "id": "STORY-000",
+      "release": null,
+      "acceptance_total": 5,
+      "criteria": [
+        {
+          "text": "Given the Command Center, when it is opened, then every tab is reachable and every card drills down one level.",
+          "passed": false
+        },
+        {
+          "text": "Given sample mode, when any tab is shown, then the sample data is visibly labelled as sample.",
+          "passed": false
+        },
+        {
+          "text": "Given the data files, when any tab renders, then its content comes from .colaberry/plan.json and .colaberry/progress.json read at runtime rather than from hard-coded values.",
+          "passed": false
+        },
+        {
+          "text": "Given .colaberry/manifest.json, when any tab is shown, then it displays how old the data is and warns when that age exceeds a week.",
+          "passed": false
+        },
+        {
+          "text": "Trust — no tab shows a number, a connection or a result the project has not actually produced.",
+          "passed": false
+        }
+      ],
+      "files_touched": [],
+      "tests_added": [],
+      "notes": null,
+      "updated_at": null,
+      "verification": null
+    },
+    {
+      "id": "STORY-001",
+      "release": "r0",
+      "acceptance_total": 3,
+      "criteria": [
+        {
+          "text": "Given an Excel file, when I upload it, then the system cleans the data.",
+          "passed": false
+        },
+        {
+          "text": "Given a malformed Excel file, when I upload it, then the system reports an error.",
+          "passed": false
+        },
+        {
+          "text": "Trust: The system logs the data cleaning process.",
+          "passed": false
+        }
+      ],
+      "files_touched": [
+        "backend/package.json",
+        "backend/tsconfig.json",
+        "backend/jest.config.js",
+        "backend/src/app.ts",
+        "backend/src/index.ts",
+        "backend/src/app.test.ts",
+        "backend/src/routes/uploadRoute.ts",
+        "backend/src/routes/uploadRoute.test.ts",
+        "backend/src/routes/uploadContract.ts",
+        "backend/src/lib/sendValidated.ts"
+      ],
+      "tests_added": [
+        "GET /health returns 200 and status ok",
+        "POST /api/upload accepts a valid .csv file",
+        "POST /api/upload accepts a valid .xlsx file",
+        "POST /api/upload rejects an unsupported file format",
+        "POST /api/upload rejects a request with no file attached"
+      ],
+      "notes": "REQ-001 (upload) implemented: POST /api/upload accepts .csv/.xlsx/.xls, rejects other formats and missing files with a typed 400, caps file size, logs every attempt. REQ-002 (cleaning) not started -- paused here by explicit request before writing the parsing/cleaning service. All 3 acceptance criteria require cleaning, so none pass yet; this is an honest in-progress state, not a completed story.",
+      "updated_at": "2026-08-19",
+      "verification": "tsc --noEmit clean; jest 5/5 passing; manual end-to-end curl check against the built server for valid .csv, unsupported .txt, and no-file-attached cases. No cleaning-service verification yet -- not built."
+    },
+    {
+      "id": "STORY-002",
+      "release": "r0",
+      "acceptance_total": 3,
+      "criteria": [
+        {
+          "text": "Given cleaned data, when KPIs are calculated, then they are displayed correctly.",
+          "passed": false
+        },
+        {
+          "text": "Given incomplete data, when KPIs are calculated, then the system requests clarification.",
+          "passed": false
+        },
+        {
+          "text": "Trust: The system logs KPI calculations and evidence levels.",
+          "passed": false
+        }
+      ],
+      "files_touched": [],
+      "tests_added": [],
+      "notes": null,
+      "updated_at": null,
+      "verification": null
+    },
+    {
+      "id": "STORY-003",
+      "release": "r1",
+      "acceptance_total": 3,
+      "criteria": [
+        {
+          "text": "Given calculated KPIs, when I access the dashboard, then they are displayed clearly.",
+          "passed": false
+        },
+        {
+          "text": "Given no KPIs, when I access the dashboard, then it shows a message indicating no data.",
+          "passed": false
+        },
+        {
+          "text": "Trust: The system logs dashboard access and interactions.",
+          "passed": false
+        }
+      ],
+      "files_touched": [],
+      "tests_added": [],
+      "notes": null,
+      "updated_at": null,
+      "verification": null
+    },
+    {
+      "id": "STORY-004",
+      "release": "r1",
+      "acceptance_total": 3,
+      "criteria": [
+        {
+          "text": "Given significant KPI changes, when they occur, then the system sends an alert via email.",
+          "passed": false
+        },
+        {
+          "text": "Given no significant changes, when I check alerts, then no new alerts are sent.",
+          "passed": false
+        },
+        {
+          "text": "Trust: The system logs all alerts sent and their contents.",
+          "passed": false
+        }
+      ],
+      "files_touched": [],
+      "tests_added": [],
+      "notes": null,
+      "updated_at": null,
+      "verification": null
+    },
+    {
+      "id": "STORY-005",
+      "release": "r2",
+      "acceptance_total": 3,
+      "criteria": [
+        {
+          "text": "Given data is available in Google Sheets and QuickBooks, when synchronization is initiated, then the data should be accurately reflected in the system.",
+          "passed": false
+        },
+        {
+          "text": "Given a failure in data synchronization, when the system retries, then the synchronization should complete successfully without data loss.",
+          "passed": false
+        },
+        {
+          "text": "Trust: Every synchronization attempt must be logged with a timestamp and status.",
+          "passed": false
+        }
+      ],
+      "files_touched": [],
+      "tests_added": [],
+      "notes": null,
+      "updated_at": null,
+      "verification": null
+    },
+    {
+      "id": "STORY-006",
+      "release": "r2",
+      "acceptance_total": 3,
+      "criteria": [
+        {
+          "text": "Given a subscription plan, when I select it, then my account is updated accordingly.",
+          "passed": false
+        },
+        {
+          "text": "Given an expired plan, when I try to upload data, then the system prompts for renewal.",
+          "passed": false
+        },
+        {
+          "text": "Trust: The system logs all subscription changes and usage.",
+          "passed": false
+        }
+      ],
+      "files_touched": [],
+      "tests_added": [],
+      "notes": null,
+      "updated_at": null,
+      "verification": null
+    },
+    {
+      "id": "STORY-007",
+      "release": "r3",
+      "acceptance_total": 3,
+      "criteria": [
+        {
+          "text": "Given uncertain KPI calculations, when they occur, then the system requests clarification.",
+          "passed": false
+        },
+        {
+          "text": "Given a KPI with low confidence, when displayed, then it shows the evidence level.",
+          "passed": false
+        },
+        {
+          "text": "Trust: The system logs all uncertainty handling and evidence levels.",
+          "passed": false
+        }
+      ],
+      "files_touched": [],
+      "tests_added": [],
+      "notes": null,
+      "updated_at": null,
+      "verification": null
+    },
+    {
+      "id": "STORY-008",
+      "release": "r3",
+      "acceptance_total": 3,
+      "criteria": [
+        {
+          "text": "Given business actions, when a report is generated, then it includes all relevant decisions.",
+          "passed": false
+        },
+        {
+          "text": "Given no actions, when a report is generated, then it indicates no actions taken.",
+          "passed": false
+        },
+        {
+          "text": "Trust: The system logs all report generation activities.",
+          "passed": false
+        }
+      ],
+      "files_touched": [],
+      "tests_added": [],
+      "notes": null,
+      "updated_at": null,
+      "verification": null
+    },
+    {
+      "id": "STORY-009",
+      "release": "r4",
+      "acceptance_total": 3,
+      "criteria": [
+        {
+          "text": "Given an insight, when I provide feedback, then the system records it.",
+          "passed": false
+        },
+        {
+          "text": "Given no feedback, when I check insights, then the system prompts for feedback.",
+          "passed": false
+        },
+        {
+          "text": "Trust: The system logs all feedback received and its impact.",
+          "passed": false
+        }
+      ],
+      "files_touched": [],
+      "tests_added": [],
+      "notes": null,
+      "updated_at": null,
+      "verification": null
+    },
+    {
+      "id": "STORY-010",
+      "release": "r4",
+      "acceptance_total": 3,
+      "criteria": [
+        {
+          "text": "Given the dashboard, when accessed, then it is simple and intuitive.",
+          "passed": false
+        },
+        {
+          "text": "Given a complex interface, when simplified, then user satisfaction increases.",
+          "passed": false
+        },
+        {
+          "text": "Trust: The system logs user interactions and feedback on interface changes.",
+          "passed": false
+        }
+      ],
+      "files_touched": [],
+      "tests_added": [],
+      "notes": null,
+      "updated_at": null,
+      "verification": null
+    },
+    {
+      "id": "STORY-011",
+      "release": "r0",
+      "acceptance_total": 3,
+      "criteria": [
+        {
+          "text": "Given data is processed, when a processing error occurs, then the system should retry the operation without duplicating data.",
+          "passed": false
+        },
+        {
+          "text": "Given data processing is complete, when an audit is conducted, then all processing steps should be logged with timestamps.",
+          "passed": false
+        },
+        {
+          "text": "Trust: Every data processing step must be logged with a unique identifier and status.",
+          "passed": false
+        }
+      ],
+      "files_touched": [],
+      "tests_added": [],
+      "notes": null,
+      "updated_at": null,
+      "verification": null
+    },
+    {
+      "id": "STORY-012",
+      "release": "r1",
+      "acceptance_total": 3,
+      "criteria": [
+        {
+          "text": "Given a significant change in KPI, when the system detects the change, then it should verify the change before sending an alert.",
+          "passed": false
+        },
+        {
+          "text": "Given a false positive KPI change, when verification fails, then no alert should be sent.",
+          "passed": false
+        },
+        {
+          "text": "Trust: Every KPI change verification must be logged with the result and timestamp.",
+          "passed": false
+        }
+      ],
+      "files_touched": [],
+      "tests_added": [],
+      "notes": null,
+      "updated_at": null,
+      "verification": null
+    },
+    {
+      "id": "STORY-013",
+      "release": "r3",
+      "acceptance_total": 3,
+      "criteria": [
+        {
+          "text": "Given data is available, when report generation is initiated, then a detailed report should be produced with all relevant metrics.",
+          "passed": false
+        },
+        {
+          "text": "Given incomplete data, when report generation is attempted, then the system should notify the user of missing data.",
+          "passed": false
+        },
+        {
+          "text": "Trust: Every report generation must be logged with the parameters used and timestamp.",
+          "passed": false
+        }
+      ],
+      "files_touched": [],
+      "tests_added": [],
+      "notes": null,
+      "updated_at": null,
+      "verification": null
+    },
+    {
+      "id": "STORY-014",
+      "release": "r4",
+      "acceptance_total": 3,
+      "criteria": [
+        {
+          "text": "Given an insight is recorded, when a change is made, then the system should allow the user to undo the change.",
+          "passed": false
+        },
+        {
+          "text": "Given a user attempts to undo a change, when the change is reversible, then the system should restore the previous state.",
+          "passed": false
+        },
+        {
+          "text": "Trust: Every insight change and undo action must be logged with a timestamp.",
+          "passed": false
+        }
+      ],
+      "files_touched": [],
+      "tests_added": [],
+      "notes": null,
+      "updated_at": null,
+      "verification": null
+    }
+  ]
 }

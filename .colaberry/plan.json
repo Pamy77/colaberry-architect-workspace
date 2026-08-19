@@ -1,285 +1,701 @@
 {
-  "product": {
-    "name": "Small Business KPI Copilot",
-    "tagline": "Automates data processing from Excel/CSV uploads to generate actionable business insights and alerts for small business owners."
-  },
-  "timeline": {
-    "buildEnds": "2026-10-01",
-    "demoDay": "2026-10-08"
-  },
+  "schema_version": 2,
+  "project_name": "Small Business KPI Copilot",
+  "descriptor": "An application that automates data processing from Excel/CSV uploads to generate actionable business insights and alerts for small business owners.",
+  "requirements": [
+    {
+      "id": "REQ-001",
+      "kind": "FUNC",
+      "cluster": "Data Upload",
+      "priority": "must",
+      "statement": "The system must allow users to upload Excel or CSV files for data processing.",
+      "fulfilled_by": [
+        "STORY-001"
+      ]
+    },
+    {
+      "id": "REQ-002",
+      "kind": "FUNC",
+      "cluster": "Data Processing",
+      "priority": "must",
+      "statement": "The system must clean and preprocess uploaded data to ensure accuracy.",
+      "fulfilled_by": [
+        "STORY-001"
+      ]
+    },
+    {
+      "id": "REQ-003",
+      "kind": "FUNC",
+      "cluster": "KPI Calculation",
+      "priority": "must",
+      "statement": "The system must calculate KPIs from the cleaned data.",
+      "fulfilled_by": [
+        "STORY-002"
+      ]
+    },
+    {
+      "id": "REQ-004",
+      "kind": "FUNC",
+      "cluster": "Dashboard",
+      "priority": "must",
+      "statement": "The system must generate a dashboard displaying calculated KPIs and insights.",
+      "fulfilled_by": [
+        "STORY-003"
+      ]
+    },
+    {
+      "id": "REQ-005",
+      "kind": "FUNC",
+      "cluster": "Alerts and Insights",
+      "priority": "must",
+      "statement": "The system must send alerts and actionable insights to users via email and Slack.",
+      "fulfilled_by": [
+        "STORY-004"
+      ]
+    },
+    {
+      "id": "REQ-006",
+      "kind": "CONSTRAINT",
+      "cluster": "Integrations",
+      "priority": "must",
+      "statement": "The system must integrate with Excel, Google Sheets, Slack, Gmail, Outlook, QuickBooks, Dropbox, and Google Drive.",
+      "fulfilled_by": [
+        "STORY-005"
+      ]
+    },
+    {
+      "id": "REQ-007",
+      "kind": "FUNC",
+      "cluster": "Subscription Management",
+      "priority": "must",
+      "statement": "The system must provide subscription plans with different upload limits: Free, $9/month, $19/month, $39/month, $79/month.",
+      "fulfilled_by": [
+        "STORY-006"
+      ]
+    },
+    {
+      "id": "REQ-008",
+      "kind": "FUNC",
+      "cluster": "Error Handling",
+      "priority": "must",
+      "statement": "The system must stop and ask for clarification when unsure about a KPI calculation or insight.",
+      "fulfilled_by": [
+        "STORY-007"
+      ]
+    },
+    {
+      "id": "REQ-009",
+      "kind": "FUNC",
+      "cluster": "KPI Calculation",
+      "priority": "must",
+      "statement": "The system must assign an evidence level to each KPI: high, medium, or low confidence.",
+      "fulfilled_by": [
+        "STORY-007"
+      ]
+    },
+    {
+      "id": "REQ-010",
+      "kind": "SAFE",
+      "cluster": "Audit and Undo",
+      "priority": "must",
+      "statement": "The system must maintain a record of insights and allow users to undo changes.",
+      "fulfilled_by": [
+        "STORY-014"
+      ]
+    },
+    {
+      "id": "REQ-011",
+      "kind": "FUNC",
+      "cluster": "User Feedback",
+      "priority": "must",
+      "statement": "The system must provide user feedback mechanisms on insight accuracy.",
+      "fulfilled_by": [
+        "STORY-009"
+      ]
+    },
+    {
+      "id": "REQ-012",
+      "kind": "FUNC",
+      "cluster": "Reporting",
+      "priority": "must",
+      "statement": "The system must generate summary reports showing decisions made.",
+      "fulfilled_by": [
+        "STORY-008"
+      ]
+    },
+    {
+      "id": "REQ-013",
+      "kind": "SAFE",
+      "cluster": "Data Verification",
+      "priority": "must",
+      "statement": "The system must verify significant drops or increases in KPIs before sending alerts.",
+      "fulfilled_by": [
+        "STORY-012"
+      ]
+    },
+    {
+      "id": "REQ-014",
+      "kind": "NFR",
+      "cluster": "User Experience",
+      "priority": "must",
+      "statement": "The system must support users with limited tech skills through simple dashboards.",
+      "fulfilled_by": [
+        "STORY-010"
+      ]
+    },
+    {
+      "id": "REQ-015",
+      "kind": "FUNC",
+      "cluster": "Data Processing",
+      "priority": "must",
+      "statement": "The system must handle data from customer feedback, sales trends, inventory levels, recurring revenue metrics, business facts, and subscription history.",
+      "fulfilled_by": [
+        "STORY-005"
+      ]
+    },
+    {
+      "id": "REQ-016",
+      "kind": "FUNC",
+      "cluster": "Reporting",
+      "priority": "must",
+      "statement": "The system must provide detailed reports for teams of analysts.",
+      "fulfilled_by": [
+        "STORY-013"
+      ]
+    },
+    {
+      "id": "REQ-017",
+      "kind": "SAFE",
+      "cluster": "Data Integrity",
+      "priority": "must",
+      "statement": "The system must ensure data accuracy and integrity throughout the process.",
+      "fulfilled_by": [
+        "STORY-011"
+      ]
+    },
+    {
+      "id": "REQ-018",
+      "kind": "NFR",
+      "cluster": "User Experience",
+      "priority": "must",
+      "statement": "Every data upload screen must allow users to complete the upload process in three steps or fewer.",
+      "fulfilled_by": [
+        "STORY-010"
+      ]
+    }
+  ],
   "releases": [
-    { "id": "r0", "name": "Initial Data Processing and KPI Calculation", "storyCount": 3, "start": "2026-08-16", "end": "2026-08-23", "stories": ["STORY-001", "STORY-002", "STORY-011"] },
-    { "id": "r1", "name": "Dashboard and Insights", "storyCount": 3, "start": "2026-08-26", "end": "2026-09-02", "stories": ["STORY-003", "STORY-004", "STORY-012"] },
-    { "id": "r2", "name": "Integrations and Subscription Management", "storyCount": 2, "start": "2026-09-07", "end": "2026-09-11", "stories": ["STORY-005", "STORY-006"] },
-    { "id": "r3", "name": "Advanced Error Handling and Reporting", "storyCount": 3, "start": "2026-09-15", "end": "2026-09-21", "stories": ["STORY-007", "STORY-008", "STORY-013"] },
-    { "id": "r4", "name": "User Feedback and Experience Enhancements", "storyCount": 3, "start": "2026-09-24", "end": "2026-10-01", "stories": ["STORY-009", "STORY-010", "STORY-014"] }
+    {
+      "key": "r0",
+      "demo": "Upload an Excel file, clean data, calculate KPIs, and show audit trail of actions.",
+      "goal": "Establish basic data upload, cleaning, and KPI calculation with audit trail.",
+      "name": "Initial Data Processing and KPI Calculation",
+      "week_end": 2,
+      "week_start": 1,
+      "story_ids": [
+        "STORY-001",
+        "STORY-002",
+        "STORY-011"
+      ],
+      "starts_on": null,
+      "ends_on": null,
+      "is_demo_target": false
+    },
+    {
+      "key": "r1",
+      "demo": "Display KPIs on a dashboard and send an alert via email.",
+      "goal": "Create a dashboard and send basic insights and alerts.",
+      "name": "Dashboard and Insights",
+      "week_end": 4,
+      "week_start": 3,
+      "story_ids": [
+        "STORY-003",
+        "STORY-004",
+        "STORY-012"
+      ],
+      "starts_on": null,
+      "ends_on": null,
+      "is_demo_target": false
+    },
+    {
+      "key": "r2",
+      "demo": "Connect to Google Sheets and QuickBooks, manage subscription tiers.",
+      "goal": "Integrate with external services and implement subscription plans.",
+      "name": "Integrations and Subscription Management",
+      "week_end": 6,
+      "week_start": 5,
+      "story_ids": [
+        "STORY-005",
+        "STORY-006"
+      ],
+      "starts_on": null,
+      "ends_on": null,
+      "is_demo_target": false
+    },
+    {
+      "key": "r3",
+      "demo": "Handle KPI calculation uncertainty and generate a summary report.",
+      "goal": "Implement error handling, evidence levels, and detailed reporting.",
+      "name": "Advanced Error Handling and Reporting",
+      "week_end": 8,
+      "week_start": 7,
+      "story_ids": [
+        "STORY-007",
+        "STORY-008",
+        "STORY-013"
+      ],
+      "starts_on": null,
+      "ends_on": null,
+      "is_demo_target": false
+    },
+    {
+      "key": "r4",
+      "demo": "Collect user feedback on insights and demonstrate a simplified dashboard.",
+      "goal": "Enhance user feedback mechanisms and improve user interface.",
+      "name": "User Feedback and Experience Enhancements",
+      "week_end": 10,
+      "week_start": 9,
+      "story_ids": [
+        "STORY-009",
+        "STORY-010",
+        "STORY-014"
+      ],
+      "starts_on": null,
+      "ends_on": null,
+      "is_demo_target": false
+    }
   ],
   "stories": [
-    { "id": "STORY-001", "title": "Upload and Clean Data", "due": "2026-08-16", "release": "r0", "owner": "Data Processing Team",
-      "relatedRequirements": [{ "id": "REQ-001", "confidence": "explicit" }, { "id": "REQ-002", "confidence": "explicit" }] },
-    { "id": "STORY-002", "title": "Calculate KPIs", "due": "2026-08-20", "release": "r0", "owner": "Data Processing Team",
-      "relatedRequirements": [{ "id": "REQ-003", "confidence": "explicit" }, { "id": "REQ-009", "confidence": "inferred" }] },
-    { "id": "STORY-011", "title": "Establish Trust Spine for Data Processing", "due": "2026-08-23", "release": "r0", "owner": "System Administrator",
-      "relatedRequirements": [{ "id": "REQ-017", "confidence": "inferred" }] },
-    { "id": "STORY-003", "title": "Display Dashboard", "due": "2026-08-26", "release": "r1", "owner": "UI/UX Team",
-      "relatedRequirements": [{ "id": "REQ-004", "confidence": "explicit" }, { "id": "REQ-014", "confidence": "inferred" }] },
-    { "id": "STORY-004", "title": "Send Alerts and Insights", "due": "2026-08-29", "release": "r1", "owner": "Notification Team",
-      "relatedRequirements": [{ "id": "REQ-005", "confidence": "explicit" }] },
-    { "id": "STORY-012", "title": "Verify KPI Changes Before Alerting", "due": "2026-09-02", "release": "r1", "owner": "Business Analyst",
-      "relatedRequirements": [{ "id": "REQ-013", "confidence": "explicit" }] },
-    { "id": "STORY-005", "title": "Synchronize Financial Data for Accurate Reporting", "due": "2026-09-07", "release": "r2", "owner": "Financial Analyst",
-      "relatedRequirements": [{ "id": "REQ-015", "confidence": "inferred" }] },
-    { "id": "STORY-006", "title": "Manage Subscription Plans", "due": "2026-09-11", "release": "r2", "owner": "Billing Team",
-      "relatedRequirements": [{ "id": "REQ-007", "confidence": "explicit" }] },
-    { "id": "STORY-007", "title": "Handle KPI Calculation Uncertainty", "due": "2026-09-15", "release": "r3", "owner": "Data Processing Team",
-      "relatedRequirements": [{ "id": "REQ-008", "confidence": "explicit" }] },
-    { "id": "STORY-008", "title": "Generate Summary Reports", "due": "2026-09-18", "release": "r3", "owner": "Reporting Team",
-      "relatedRequirements": [{ "id": "REQ-012", "confidence": "explicit" }] },
-    { "id": "STORY-013", "title": "Generate Detailed Reports for Analysts", "due": "2026-09-21", "release": "r3", "owner": "Analyst",
-      "relatedRequirements": [{ "id": "REQ-016", "confidence": "explicit" }] },
-    { "id": "STORY-009", "title": "Collect User Feedback on Insights", "due": "2026-09-24", "release": "r4", "owner": "User Experience Team",
-      "relatedRequirements": [{ "id": "REQ-011", "confidence": "explicit" }] },
-    { "id": "STORY-010", "title": "Enhance User Interface for Simplicity", "due": "2026-09-28", "release": "r4", "owner": "UI/UX Team",
-      "relatedRequirements": [{ "id": "REQ-014", "confidence": "explicit" }, { "id": "REQ-018", "confidence": "inferred" }] },
-    { "id": "STORY-014", "title": "Maintain Record of Insights with Undo Capability", "due": "2026-10-01", "release": "r4", "owner": "User",
-      "relatedRequirements": [{ "id": "REQ-010", "confidence": "explicit" }] }
+    {
+      "id": "STORY-001",
+      "title": "Upload and Clean Data",
+      "release": "r0",
+      "fulfills": [
+        "REQ-001",
+        "REQ-002"
+      ],
+      "narrative": "As a business owner, I want to upload Excel files and have them cleaned automatically, so that I can ensure data accuracy.",
+      "acceptance": [
+        "Given an Excel file, when I upload it, then the system cleans the data.",
+        "Given a malformed Excel file, when I upload it, then the system reports an error.",
+        "Trust: The system logs the data cleaning process."
+      ],
+      "blocked_by": [],
+      "owner_agent": "Data Processing Team",
+      "failure_paths": [
+        "File format not supported",
+        "Data contains invalid entries",
+        "Upload interrupted"
+      ],
+      "task_guidance": "Implement file upload endpoint and data cleaning service.",
+      "due_on": null,
+      "due_baseline_on": null
+    },
+    {
+      "id": "STORY-002",
+      "title": "Calculate KPIs",
+      "release": "r0",
+      "fulfills": [
+        "REQ-003"
+      ],
+      "narrative": "As a business owner, I want KPIs calculated from my data, so that I can understand my business performance.",
+      "acceptance": [
+        "Given cleaned data, when KPIs are calculated, then they are displayed correctly.",
+        "Given incomplete data, when KPIs are calculated, then the system requests clarification.",
+        "Trust: The system logs KPI calculations and evidence levels."
+      ],
+      "blocked_by": [],
+      "owner_agent": "Data Processing Team",
+      "failure_paths": [
+        "Data inconsistency",
+        "Calculation error",
+        "Missing data"
+      ],
+      "task_guidance": "Develop KPI calculation module and integrate with data cleaning output.",
+      "due_on": null,
+      "due_baseline_on": null
+    },
+    {
+      "id": "STORY-003",
+      "title": "Display Dashboard",
+      "release": "r1",
+      "fulfills": [
+        "REQ-004"
+      ],
+      "narrative": "As a business owner, I want a dashboard displaying my KPIs, so that I can easily monitor my business.",
+      "acceptance": [
+        "Given calculated KPIs, when I access the dashboard, then they are displayed clearly.",
+        "Given no KPIs, when I access the dashboard, then it shows a message indicating no data.",
+        "Trust: The system logs dashboard access and interactions."
+      ],
+      "blocked_by": [
+        "STORY-002"
+      ],
+      "owner_agent": "UI/UX Team",
+      "failure_paths": [
+        "Dashboard fails to load",
+        "Incorrect KPI display",
+        "User interface errors"
+      ],
+      "task_guidance": "Design and implement a user-friendly dashboard interface.",
+      "due_on": null,
+      "due_baseline_on": null
+    },
+    {
+      "id": "STORY-004",
+      "title": "Send Alerts and Insights",
+      "release": "r1",
+      "fulfills": [
+        "REQ-005"
+      ],
+      "narrative": "As a business owner, I want to receive alerts and insights, so that I can take timely actions.",
+      "acceptance": [
+        "Given significant KPI changes, when they occur, then the system sends an alert via email.",
+        "Given no significant changes, when I check alerts, then no new alerts are sent.",
+        "Trust: The system logs all alerts sent and their contents."
+      ],
+      "blocked_by": [
+        "STORY-003"
+      ],
+      "owner_agent": "Notification Team",
+      "failure_paths": [
+        "Email delivery failure",
+        "Slack integration error",
+        "Alert content incorrect"
+      ],
+      "task_guidance": "Set up email and Slack notification services.",
+      "due_on": null,
+      "due_baseline_on": null
+    },
+    {
+      "id": "STORY-005",
+      "title": "Synchronize Financial Data for Accurate Reporting",
+      "release": "r2",
+      "fulfills": [
+        "REQ-006",
+        "REQ-015"
+      ],
+      "narrative": "As a financial analyst, I want to synchronize data from Google Sheets and QuickBooks, so that I can ensure accurate financial reporting.",
+      "acceptance": [
+        "Given data is available in Google Sheets and QuickBooks, when synchronization is initiated, then the data should be accurately reflected in the system.",
+        "Given a failure in data synchronization, when the system retries, then the synchronization should complete successfully without data loss.",
+        "Trust: Every synchronization attempt must be logged with a timestamp and status."
+      ],
+      "blocked_by": [
+        "STORY-006"
+      ],
+      "owner_agent": "Financial Analyst",
+      "failure_paths": [
+        "API authentication failure",
+        "Data format mismatch",
+        "Network timeout",
+        "Partial data sync",
+        "Data integrity check failure"
+      ],
+      "task_guidance": "Implement data synchronization using the Google Sheets API and QuickBooks API. Ensure data integrity checks are in place.",
+      "due_on": null,
+      "due_baseline_on": null
+    },
+    {
+      "id": "STORY-006",
+      "title": "Manage Subscription Plans",
+      "release": "r2",
+      "fulfills": [
+        "REQ-007"
+      ],
+      "narrative": "As a business owner, I want to manage my subscription plan, so that I can control my costs and usage.",
+      "acceptance": [
+        "Given a subscription plan, when I select it, then my account is updated accordingly.",
+        "Given an expired plan, when I try to upload data, then the system prompts for renewal.",
+        "Trust: The system logs all subscription changes and usage."
+      ],
+      "blocked_by": [
+        "STORY-005"
+      ],
+      "owner_agent": "Billing Team",
+      "failure_paths": [
+        "Payment processing error",
+        "Plan selection failure",
+        "Usage limit exceeded"
+      ],
+      "task_guidance": "Implement subscription management module with payment processing.",
+      "due_on": null,
+      "due_baseline_on": null
+    },
+    {
+      "id": "STORY-007",
+      "title": "Handle KPI Calculation Uncertainty",
+      "release": "r3",
+      "fulfills": [
+        "REQ-008",
+        "REQ-009"
+      ],
+      "narrative": "As a business owner, I want the system to handle uncertainty in KPI calculations, so that I can trust the insights provided.",
+      "acceptance": [
+        "Given uncertain KPI calculations, when they occur, then the system requests clarification.",
+        "Given a KPI with low confidence, when displayed, then it shows the evidence level.",
+        "Trust: The system logs all uncertainty handling and evidence levels."
+      ],
+      "blocked_by": [
+        "STORY-006"
+      ],
+      "owner_agent": "Data Processing Team",
+      "failure_paths": [
+        "Clarification request not sent",
+        "Incorrect evidence level",
+        "User confusion"
+      ],
+      "task_guidance": "Enhance KPI calculation module to include uncertainty handling and evidence levels.",
+      "due_on": null,
+      "due_baseline_on": null
+    },
+    {
+      "id": "STORY-008",
+      "title": "Generate Summary Reports",
+      "release": "r3",
+      "fulfills": [
+        "REQ-012"
+      ],
+      "narrative": "As a business owner, I want summary reports of decisions made, so that I can review business actions.",
+      "acceptance": [
+        "Given business actions, when a report is generated, then it includes all relevant decisions.",
+        "Given no actions, when a report is generated, then it indicates no actions taken.",
+        "Trust: The system logs all report generation activities."
+      ],
+      "blocked_by": [
+        "STORY-007"
+      ],
+      "owner_agent": "Reporting Team",
+      "failure_paths": [
+        "Report generation failure",
+        "Incorrect report content",
+        "Data omission"
+      ],
+      "task_guidance": "Develop report generation module to summarize business actions.",
+      "due_on": null,
+      "due_baseline_on": null
+    },
+    {
+      "id": "STORY-009",
+      "title": "Collect User Feedback on Insights",
+      "release": "r4",
+      "fulfills": [
+        "REQ-011"
+      ],
+      "narrative": "As a business owner, I want to provide feedback on insights, so that the system can improve its accuracy.",
+      "acceptance": [
+        "Given an insight, when I provide feedback, then the system records it.",
+        "Given no feedback, when I check insights, then the system prompts for feedback.",
+        "Trust: The system logs all feedback received and its impact."
+      ],
+      "blocked_by": [
+        "STORY-008"
+      ],
+      "owner_agent": "User Experience Team",
+      "failure_paths": [
+        "Feedback not recorded",
+        "Feedback prompt not shown",
+        "User interface issues"
+      ],
+      "task_guidance": "Implement feedback collection mechanism linked to insights.",
+      "due_on": null,
+      "due_baseline_on": null
+    },
+    {
+      "id": "STORY-010",
+      "title": "Enhance User Interface for Simplicity",
+      "release": "r4",
+      "fulfills": [
+        "REQ-014",
+        "REQ-018"
+      ],
+      "narrative": "As a business owner with limited tech skills, I want a simple interface, so that I can use the system easily.",
+      "acceptance": [
+        "Given the dashboard, when accessed, then it is simple and intuitive.",
+        "Given a complex interface, when simplified, then user satisfaction increases.",
+        "Trust: The system logs user interactions and feedback on interface changes."
+      ],
+      "blocked_by": [
+        "STORY-009"
+      ],
+      "owner_agent": "UI/UX Team",
+      "failure_paths": [
+        "Interface not intuitive",
+        "User dissatisfaction",
+        "Navigation errors"
+      ],
+      "task_guidance": "Redesign user interface to enhance simplicity and usability.",
+      "due_on": null,
+      "due_baseline_on": null
+    },
+    {
+      "id": "STORY-011",
+      "title": "Establish Trust Spine for Data Processing",
+      "release": "r0",
+      "fulfills": [
+        "REQ-017"
+      ],
+      "narrative": "As a system administrator, I want to ensure data processing is reliable and auditable, so that data integrity is maintained.",
+      "acceptance": [
+        "Given data is processed, when a processing error occurs, then the system should retry the operation without duplicating data.",
+        "Given data processing is complete, when an audit is conducted, then all processing steps should be logged with timestamps.",
+        "Trust: Every data processing step must be logged with a unique identifier and status."
+      ],
+      "blocked_by": [],
+      "owner_agent": "System Administrator",
+      "failure_paths": [
+        "Duplicate data processing",
+        "Incomplete logging",
+        "Data corruption during processing",
+        "Audit trail missing",
+        "Incorrect error handling"
+      ],
+      "task_guidance": "Implement logging for each data processing step, ensuring idempotency and auditability.",
+      "due_on": null,
+      "due_baseline_on": null
+    },
+    {
+      "id": "STORY-012",
+      "title": "Verify KPI Changes Before Alerting",
+      "release": "r1",
+      "fulfills": [
+        "REQ-013"
+      ],
+      "narrative": "As a business analyst, I want to verify significant KPI changes before alerts are sent, so that false alarms are minimized.",
+      "acceptance": [
+        "Given a significant change in KPI, when the system detects the change, then it should verify the change before sending an alert.",
+        "Given a false positive KPI change, when verification fails, then no alert should be sent.",
+        "Trust: Every KPI change verification must be logged with the result and timestamp."
+      ],
+      "blocked_by": [
+        "STORY-004"
+      ],
+      "owner_agent": "Business Analyst",
+      "failure_paths": [
+        "False positive KPI change",
+        "Verification logic error",
+        "Delayed alert due to verification",
+        "Incorrect KPI threshold",
+        "Logging failure"
+      ],
+      "task_guidance": "Implement a verification mechanism for KPI changes before triggering alerts.",
+      "due_on": null,
+      "due_baseline_on": null
+    },
+    {
+      "id": "STORY-013",
+      "title": "Generate Detailed Reports for Analysts",
+      "release": "r3",
+      "fulfills": [
+        "REQ-016"
+      ],
+      "narrative": "As an analyst, I want detailed reports generated, so that I can perform in-depth analysis.",
+      "acceptance": [
+        "Given data is available, when report generation is initiated, then a detailed report should be produced with all relevant metrics.",
+        "Given incomplete data, when report generation is attempted, then the system should notify the user of missing data.",
+        "Trust: Every report generation must be logged with the parameters used and timestamp."
+      ],
+      "blocked_by": [
+        "STORY-008"
+      ],
+      "owner_agent": "Analyst",
+      "failure_paths": [
+        "Incomplete data",
+        "Report template error",
+        "Data source unavailability",
+        "Incorrect report metrics",
+        "Logging failure"
+      ],
+      "task_guidance": "Design report templates and implement report generation logic using available data sources.",
+      "due_on": null,
+      "due_baseline_on": null
+    },
+    {
+      "id": "STORY-014",
+      "title": "Maintain Record of Insights with Undo Capability",
+      "release": "r4",
+      "fulfills": [
+        "REQ-010"
+      ],
+      "narrative": "As a user, I want to maintain a record of insights and be able to undo changes, so that I can manage insights effectively.",
+      "acceptance": [
+        "Given an insight is recorded, when a change is made, then the system should allow the user to undo the change.",
+        "Given a user attempts to undo a change, when the change is reversible, then the system should restore the previous state.",
+        "Trust: Every insight change and undo action must be logged with a timestamp."
+      ],
+      "blocked_by": [
+        "STORY-009"
+      ],
+      "owner_agent": "User",
+      "failure_paths": [
+        "Irreversible change",
+        "Undo operation failure",
+        "Version control error",
+        "Logging failure",
+        "User interface confusion"
+      ],
+      "task_guidance": "Implement a version control mechanism for insights allowing undo operations.",
+      "due_on": null,
+      "due_baseline_on": null
+    }
   ],
-  "requirements": [
-    { "id": "REQ-001", "type": "FUNC", "priority": "must", "text": "The system must allow users to upload Excel or CSV files for data processing." },
-    { "id": "REQ-002", "type": "FUNC", "priority": "must", "text": "The system must clean and preprocess uploaded data to ensure accuracy." },
-    { "id": "REQ-003", "type": "FUNC", "priority": "must", "text": "The system must calculate KPIs from the cleaned data." },
-    { "id": "REQ-004", "type": "FUNC", "priority": "must", "text": "The system must generate a dashboard displaying calculated KPIs and insights." },
-    { "id": "REQ-005", "type": "FUNC", "priority": "must", "text": "The system must send alerts and actionable insights to users via email and Slack." },
-    { "id": "REQ-006", "type": "CONSTRAINT", "priority": "must", "text": "The system must integrate with Excel, Google Sheets, Slack, Gmail, Outlook, QuickBooks, Dropbox, and Google Drive." },
-    { "id": "REQ-007", "type": "FUNC", "priority": "must", "text": "The system must provide subscription plans with different upload limits: Free, $9/month, $19/month, $39/month, $79/month." },
-    { "id": "REQ-008", "type": "FUNC", "priority": "must", "text": "The system must stop and ask for clarification when unsure about a KPI calculation or insight." },
-    { "id": "REQ-009", "type": "FUNC", "priority": "must", "text": "The system must assign an evidence level to each KPI: high, medium, or low confidence." },
-    { "id": "REQ-010", "type": "SAFE", "priority": "must", "text": "The system must maintain a record of insights and allow users to undo changes." },
-    { "id": "REQ-011", "type": "FUNC", "priority": "must", "text": "The system must provide user feedback mechanisms on insight accuracy." },
-    { "id": "REQ-012", "type": "FUNC", "priority": "must", "text": "The system must generate summary reports showing decisions made." },
-    { "id": "REQ-013", "type": "SAFE", "priority": "must", "text": "The system must verify significant drops or increases in KPIs before sending alerts." },
-    { "id": "REQ-014", "type": "NFR", "priority": "must", "text": "The system must support users with limited tech skills through simple dashboards." },
-    { "id": "REQ-015", "type": "FUNC", "priority": "must", "text": "The system must handle data from customer feedback, sales trends, inventory levels, recurring revenue metrics, business facts, and subscription history." },
-    { "id": "REQ-016", "type": "FUNC", "priority": "must", "text": "The system must provide detailed reports for teams of analysts." },
-    { "id": "REQ-017", "type": "SAFE", "priority": "must", "text": "The system must ensure data accuracy and integrity throughout the process." },
-    { "id": "REQ-018", "type": "NFR", "priority": "must", "text": "Every data upload screen must allow users to complete the upload process in three steps or fewer." }
-  ],
-  "guardrails": ["REQ-010", "REQ-013", "REQ-017"],
-  "guardrailNotes": {
-    "REQ-010": "STORY-014's title (\"Maintain Record of Insights with Undo Capability\") is close to a direct paraphrase of this requirement.",
-    "REQ-013": "STORY-012's title (\"Verify KPI Changes Before Alerting\") is close to a direct paraphrase of this requirement.",
-    "REQ-017": "No story title matches this one as directly. STORY-011 (\"Establish Trust Spine for Data Processing\") is the closest thematic fit in r0 — treat this link as inferred, not stated in the plan."
+  "agents": [],
+  "project": {
+    "name": "Small Business KPI Copilot",
+    "descriptor": "An application that automates data processing from Excel/CSV uploads to generate actionable business insights and alerts for small business owners.",
+    "repo_url": null,
+    "plan_version": 1,
+    "plan_sha256": "b651ac6b982a26137a10aa54dac0e63b1e600d6a48713116cd1a8f29a1f00ba3"
   },
-  "systems": [
-    { "name": "Excel" },
-    { "name": "Google Sheets" },
-    { "name": "Slack" },
-    { "name": "Gmail" },
-    { "name": "Outlook" },
-    { "name": "QuickBooks" },
-    { "name": "Dropbox" },
-    { "name": "Google Drive" }
-  ],
-  "roles": [
-    "business owner",
-    "financial analyst",
-    "business owner with limited tech skills",
-    "system administrator",
-    "business analyst",
-    "analyst"
-  ],
-  "roleLinks": {
-    "business owner": { "stories": [], "requirements": [] },
-    "financial analyst": { "stories": ["STORY-005"], "requirements": [] },
-    "business owner with limited tech skills": { "stories": [], "requirements": ["REQ-014"] },
-    "system administrator": { "stories": ["STORY-011"], "requirements": [] },
-    "business analyst": { "stories": ["STORY-012"], "requirements": [] },
-    "analyst": { "stories": ["STORY-013"], "requirements": ["REQ-016"] }
-  },
-  "owners": [
-    { "name": "Data Processing Team", "stories": ["STORY-001", "STORY-002", "STORY-007"] },
-    { "name": "UI/UX Team", "stories": ["STORY-003", "STORY-010"] },
-    { "name": "Notification Team", "stories": ["STORY-004"] },
-    { "name": "Financial Analyst", "stories": ["STORY-005"] },
-    { "name": "Billing Team", "stories": ["STORY-006"] },
-    { "name": "Reporting Team", "stories": ["STORY-008"] },
-    { "name": "User Experience Team", "stories": ["STORY-009"] },
-    { "name": "System Administrator", "stories": ["STORY-011"] },
-    { "name": "Business Analyst", "stories": ["STORY-012"] },
-    { "name": "Analyst", "stories": ["STORY-013"] },
-    { "name": "User", "stories": ["STORY-014"] }
-  ],
-  "tabs": [
-    { "id": "overview", "label": "Overview", "built": true, "href": "index.html" },
-    { "id": "outcomes", "label": "Outcomes", "built": true, "href": "outcomes.html" },
-    { "id": "users", "label": "Users and use case", "built": true, "href": "users.html" },
-    { "id": "guardrails", "label": "Guardrails", "built": true, "href": "guardrails.html" },
-    { "id": "systems", "label": "Systems", "built": true, "href": "systems.html" },
-    { "id": "pm", "label": "Project management", "built": true, "href": "pm.html" },
-    { "id": "agents", "label": "AI agents", "built": true, "href": "agents.html" },
-    { "id": "kb", "label": "Knowledge base", "built": true, "href": "kb.html" },
-    { "id": "datamodel", "label": "Data model", "built": true, "href": "datamodel.html" }
-  ],
-  "dataModel": {
-    "entities": [
-      { "name": "Business", "purpose": "One small-business account using the Copilot.",
-        "fields": [
-          { "name": "id", "type": "uuid", "note": "primary key" },
-          { "name": "name", "type": "text" },
-          { "name": "owner_name", "type": "text", "note": "the business owner" },
-          { "name": "subscription_plan_id", "type": "uuid", "note": "FK -> SubscriptionPlan" },
-          { "name": "created_at", "type": "timestamp" }
-        ],
-        "relatedRequirements": [{ "id": "REQ-007", "confidence": "inferred" }] },
-      { "name": "SubscriptionPlan", "purpose": "One of the five pricing tiers and its upload limit.",
-        "fields": [
-          { "name": "id", "type": "uuid" },
-          { "name": "name", "type": "text", "note": "Free, $9/mo, $19/mo, $39/mo, $79/mo" },
-          { "name": "monthly_price_usd", "type": "integer" },
-          { "name": "upload_limit", "type": "integer" }
-        ],
-        "relatedRequirements": [{ "id": "REQ-007", "confidence": "explicit" }] },
-      { "name": "Integration", "purpose": "Connection status of one external system for one business.",
-        "fields": [
-          { "name": "id", "type": "uuid" },
-          { "name": "business_id", "type": "uuid", "note": "FK -> Business" },
-          { "name": "system_name", "type": "text", "note": "Excel, Google Sheets, Slack, Gmail, Outlook, QuickBooks, Dropbox, Google Drive" },
-          { "name": "status", "type": "text", "note": "connected / not_connected / error" },
-          { "name": "last_checked_at", "type": "timestamp", "note": "nullable" }
-        ],
-        "relatedRequirements": [{ "id": "REQ-006", "confidence": "explicit" }] },
-      { "name": "DataUpload", "purpose": "One Excel/CSV/Sheets upload event.",
-        "fields": [
-          { "name": "id", "type": "uuid" },
-          { "name": "business_id", "type": "uuid" },
-          { "name": "source_type", "type": "text", "note": "excel / csv / google_sheets / quickbooks" },
-          { "name": "uploaded_at", "type": "timestamp" },
-          { "name": "status", "type": "text", "note": "pending / cleaned / failed" },
-          { "name": "row_count", "type": "integer" }
-        ],
-        "relatedRequirements": [{ "id": "REQ-001", "confidence": "explicit" }, { "id": "REQ-018", "confidence": "explicit" }] },
-      { "name": "DataRecord", "purpose": "One cleaned data point from an upload (customer feedback, sales trends, inventory levels, recurring revenue, business facts, or subscription history).",
-        "fields": [
-          { "name": "id", "type": "uuid" },
-          { "name": "upload_id", "type": "uuid", "note": "FK -> DataUpload" },
-          { "name": "category", "type": "text" },
-          { "name": "period", "type": "date" },
-          { "name": "payload", "type": "jsonb", "note": "category-specific fields" }
-        ],
-        "relatedRequirements": [{ "id": "REQ-002", "confidence": "explicit" }, { "id": "REQ-015", "confidence": "explicit" }, { "id": "REQ-017", "confidence": "inferred" }] },
-      { "name": "KPI", "purpose": "One calculated KPI for a business and period, with its confidence level.",
-        "fields": [
-          { "name": "id", "type": "uuid" },
-          { "name": "business_id", "type": "uuid" },
-          { "name": "period", "type": "date" },
-          { "name": "name", "type": "text" },
-          { "name": "value", "type": "numeric" },
-          { "name": "evidence_level", "type": "text", "note": "high / medium / low" },
-          { "name": "calculated_at", "type": "timestamp" }
-        ],
-        "relatedRequirements": [{ "id": "REQ-003", "confidence": "explicit" }, { "id": "REQ-009", "confidence": "explicit" }] },
-      { "name": "Insight", "purpose": "One actionable insight derived from one or more KPIs.",
-        "fields": [
-          { "name": "id", "type": "uuid" },
-          { "name": "business_id", "type": "uuid" },
-          { "name": "kpi_id", "type": "uuid", "note": "nullable FK -> KPI" },
-          { "name": "headline", "type": "text" },
-          { "name": "detail", "type": "text" },
-          { "name": "confidence", "type": "numeric" },
-          { "name": "status", "type": "text", "note": "active / undone" },
-          { "name": "created_at", "type": "timestamp" }
-        ],
-        "relatedRequirements": [{ "id": "REQ-004", "confidence": "explicit" }, { "id": "REQ-010", "confidence": "inferred" }] },
-      { "name": "InsightRevision", "purpose": "One change to an insight's status — the undo history REQ-010 requires.",
-        "fields": [
-          { "name": "id", "type": "uuid" },
-          { "name": "insight_id", "type": "uuid" },
-          { "name": "changed_at", "type": "timestamp" },
-          { "name": "changed_by", "type": "uuid", "note": "FK -> AppUser" },
-          { "name": "previous_status", "type": "text" },
-          { "name": "new_status", "type": "text" },
-          { "name": "reason", "type": "text", "note": "nullable" }
-        ],
-        "relatedRequirements": [{ "id": "REQ-010", "confidence": "explicit" }] },
-      { "name": "Clarification", "purpose": "A flag raised when the system is unsure about a KPI or insight and needs a person to resolve it.",
-        "fields": [
-          { "name": "id", "type": "uuid" },
-          { "name": "business_id", "type": "uuid" },
-          { "name": "kpi_id", "type": "uuid", "note": "nullable" },
-          { "name": "insight_id", "type": "uuid", "note": "nullable" },
-          { "name": "reason", "type": "text" },
-          { "name": "status", "type": "text", "note": "pending / resolved" },
-          { "name": "raised_at", "type": "timestamp" },
-          { "name": "resolved_at", "type": "timestamp", "note": "nullable" }
-        ],
-        "relatedRequirements": [{ "id": "REQ-008", "confidence": "explicit" }] },
-      { "name": "Alert", "purpose": "One notification actually sent for an insight, after the REQ-013 verification step.",
-        "fields": [
-          { "name": "id", "type": "uuid" },
-          { "name": "insight_id", "type": "uuid" },
-          { "name": "channel", "type": "text", "note": "email / slack" },
-          { "name": "verified", "type": "boolean" },
-          { "name": "verification_note", "type": "text", "note": "nullable" },
-          { "name": "sent_at", "type": "timestamp" },
-          { "name": "recipient", "type": "text" }
-        ],
-        "relatedRequirements": [{ "id": "REQ-005", "confidence": "explicit" }, { "id": "REQ-013", "confidence": "explicit" }] },
-      { "name": "UserFeedback", "purpose": "A person's rating/comment on whether an insight was accurate.",
-        "fields": [
-          { "name": "id", "type": "uuid" },
-          { "name": "insight_id", "type": "uuid" },
-          { "name": "submitted_by", "type": "uuid", "note": "FK -> AppUser" },
-          { "name": "accurate", "type": "boolean" },
-          { "name": "comment", "type": "text", "note": "nullable" },
-          { "name": "submitted_at", "type": "timestamp" }
-        ],
-        "relatedRequirements": [{ "id": "REQ-011", "confidence": "explicit" }] },
-      { "name": "SummaryReport", "purpose": "A generated report — the plain-English summary (REQ-012) or the detailed analyst version (REQ-016).",
-        "fields": [
-          { "name": "id", "type": "uuid" },
-          { "name": "business_id", "type": "uuid" },
-          { "name": "period", "type": "date" },
-          { "name": "report_type", "type": "text", "note": "summary / detailed" },
-          { "name": "generated_at", "type": "timestamp" },
-          { "name": "content_ref", "type": "text", "note": "pointer to stored report content" }
-        ],
-        "relatedRequirements": [{ "id": "REQ-012", "confidence": "explicit" }, { "id": "REQ-016", "confidence": "explicit" }] },
-      { "name": "AppUser", "purpose": "A person who can log in — carries a role (business owner, financial analyst, business analyst, analyst, system administrator).",
-        "fields": [
-          { "name": "id", "type": "uuid" },
-          { "name": "business_id", "type": "uuid" },
-          { "name": "name", "type": "text" },
-          { "name": "email", "type": "text" },
-          { "name": "role", "type": "text" }
-        ],
-        "relatedRequirements": [{ "id": "REQ-014", "confidence": "inferred" }] }
+  "schedule": null,
+  "derived": {
+    "measures": [],
+    "guardrails": [
+      {
+        "id": "REQ-010",
+        "statement": "The system must maintain a record of insights and allow users to undo changes."
+      },
+      {
+        "id": "REQ-013",
+        "statement": "The system must verify significant drops or increases in KPIs before sending alerts."
+      },
+      {
+        "id": "REQ-017",
+        "statement": "The system must ensure data accuracy and integrity throughout the process."
+      }
     ],
-    "relationships": [
-      { "from": "Business", "to": "SubscriptionPlan", "cardinality": "*..1", "note": "each business is on one plan" },
-      { "from": "Business", "to": "Integration", "cardinality": "1..*", "note": "one row per external system" },
-      { "from": "Business", "to": "DataUpload", "cardinality": "1..*" },
-      { "from": "DataUpload", "to": "DataRecord", "cardinality": "1..*" },
-      { "from": "Business", "to": "KPI", "cardinality": "1..*" },
-      { "from": "KPI", "to": "Insight", "cardinality": "1..*" },
-      { "from": "Insight", "to": "InsightRevision", "cardinality": "1..*", "note": "undo history" },
-      { "from": "Insight", "to": "Alert", "cardinality": "1..*" },
-      { "from": "Insight", "to": "UserFeedback", "cardinality": "1..*" },
-      { "from": "KPI", "to": "Clarification", "cardinality": "1..*" },
-      { "from": "Business", "to": "SummaryReport", "cardinality": "1..*" },
-      { "from": "Business", "to": "AppUser", "cardinality": "1..*" }
-    ]
-  },
-  "sample": {
-    "systemsConnected": 3,
-    "live": [
-      "File upload wizard (sample)",
-      "KPI dashboard preview (sample)",
-      "Slack alert delivery (sample)"
+    "systems": [
+      "Excel",
+      "Google Sheets",
+      "Slack",
+      "Gmail",
+      "Outlook",
+      "QuickBooks",
+      "Dropbox",
+      "Google Drive"
     ],
-    "outcomes": [
-      { "name": "Weekly report open rate", "current": "62%", "target": "80%", "trend": "up" },
-      { "name": "Insights needing manual correction", "current": "4 / week", "target": "< 2 / week", "trend": "down" },
-      { "name": "Time from upload to first insight", "current": "18 min", "target": "< 10 min", "trend": "flat" }
-    ]
+    "roles": [
+      "business owner",
+      "financial analyst",
+      "business owner with limited tech skills",
+      "system administrator",
+      "business analyst",
+      "analyst",
+      "user"
+    ],
+    "counts": {
+      "requirements_total": 18,
+      "requirements_by_kind": {
+        "CONSTRAINT": 1,
+        "FUNC": 12,
+        "NFR": 2,
+        "SAFE": 3
+      },
+      "stories_total": 14,
+      "releases_total": 5,
+      "agents_total": 0,
+      "failure_paths_total": 50,
+      "agents_by_autonomy": {}
+    }
   }
 }

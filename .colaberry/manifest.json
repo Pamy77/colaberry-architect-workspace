@@ -1,6 +1,96 @@
 {
-  "planGeneratedAt": "2026-08-17",
-  "progressGeneratedAt": "2026-08-17",
-  "source": "docs/workflow-plan.md",
-  "notes": "Manually authored from the project plan. No automated generator exists yet — update these files (and this timestamp) by hand as the plan or real-world status changes."
+  "generated_at": "2026-08-19T04:14:03.796Z",
+  "plan_version": 1,
+  "plan_sha256": "b651ac6b982a26137a10aa54dac0e63b1e600d6a48713116cd1a8f29a1f00ba3",
+  "correlation_id": "58382a74-df74-4e32-962c-89ee92dc9f6b",
+  "files": [
+    {
+      "path": "docs/REQUIREMENTS.md",
+      "sha256": "9187ac1dd602d0a7e7064024efda4313ac58e37acca9a20aefbd541007774b7e"
+    },
+    {
+      "path": "docs/STORIES.md",
+      "sha256": "b7183e8f3c98791699afef065f093a289af603d387391a8223ecaef3a51f8816"
+    },
+    {
+      "path": "docs/TRACEABILITY.md",
+      "sha256": "06fd4aac793c3e46a6f91945f084065d9575fb94d92c29cababc12b2eb63a589"
+    },
+    {
+      "path": "CLAUDE.md",
+      "sha256": "7c479b2dfed346c935f067659e818fdcb618186148cb4567531af6a1d73f6d6c"
+    },
+    {
+      "path": "docs/stories/STORY-001.md",
+      "sha256": "dd6061194b87c7d01b8a795ea89f1312b0c2ef7c1661f7fc947de521da3c49cd"
+    },
+    {
+      "path": "docs/stories/STORY-002.md",
+      "sha256": "dfbe024c38da69433cfcb58b568485d92d4dab8eeb8de6f2bba17d189d797c83"
+    },
+    {
+      "path": "docs/stories/STORY-003.md",
+      "sha256": "847682598cf294e00fc2bbcb7eef25cabcb874bfedd0d060f9bd2dcfb3408a7b"
+    },
+    {
+      "path": "docs/stories/STORY-004.md",
+      "sha256": "d25913a7f343e8f3a2a1daffc92b7a17ee1107a257f091f2e04ae4d5be36fbc2"
+    },
+    {
+      "path": "docs/stories/STORY-005.md",
+      "sha256": "659fe5eb7d2cc3ce40ea2eb34e25caf5ba107b82120d8b8897cb579ddcf43299"
+    },
+    {
+      "path": "docs/stories/STORY-006.md",
+      "sha256": "9a2daa900cc0033cac6e4bf8caf0c65f50dd873573b544e46aee3d245a27e80f"
+    },
+    {
+      "path": "docs/stories/STORY-007.md",
+      "sha256": "715b0257999c027b7f0f41e0dcf41bf5da13b03c8814474677ba4d9df9553fcb"
+    },
+    {
+      "path": "docs/stories/STORY-008.md",
+      "sha256": "3724e91693483d1679a7c8ec6abb9d4b3271ab6bbfe2548152a2435ed29e69f6"
+    },
+    {
+      "path": "docs/stories/STORY-009.md",
+      "sha256": "4637ce77e40c2a47e72ded18a56c5f0574c74f4221f400e7590a6b93fe6d12da"
+    },
+    {
+      "path": "docs/stories/STORY-010.md",
+      "sha256": "70433fbaf92f8dfd4c1eefb4908d02edebd5fcf6729378de90296d526476ffa0"
+    },
+    {
+      "path": "docs/stories/STORY-011.md",
+      "sha256": "72a7d3aa0a7cdbe4c50d3e010058ef96fa54db615e6e56ada8d039804a6982a3"
+    },
+    {
+      "path": "docs/stories/STORY-012.md",
+      "sha256": "fe6f6ea2d1928a3e6355d71d01abd68fc731fbee7b7aa80bb5c3d9267f411e6f"
+    },
+    {
+      "path": "docs/stories/STORY-013.md",
+      "sha256": "e7f2202f30456c1ed4b600733dba2b2aed8c88255d7056804b9cb28a15ba19e6"
+    },
+    {
+      "path": "docs/stories/STORY-014.md",
+      "sha256": "93c33ea55577db587c949c738cc0fb82a402b208f1c9a70d79a190a8b06ca2f3"
+    },
+    {
+      "path": "docs/stories/STORY-000.md",
+      "sha256": "29291da3300e9228cc5aaf783cd75563f9db933d510d75911c5d1cb03cf29c3b"
+    },
+    {
+      "path": ".colaberry/plan.json",
+      "sha256": "b42dbe0494a08ebb4b50d53f4c52736f50e5d0fac7d51cae4e7beefad36fb65a"
+    },
+    {
+      "path": ".colaberry/progress.json",
+      "sha256": "1e1b35ae1063ea42c29574890e49d3a9a1d5e8d33edda1be538656bd97780fe3"
+    },
+    {
+      "path": ".colaberry/profile.json",
+      "sha256": "23a23259ef9033421479380c44c0c928276bb7066f34ef0fee30bb7661a46e88"
+    }
+  ]
 }
