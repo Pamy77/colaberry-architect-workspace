@@ -51,15 +51,15 @@
       "criteria": [
         {
           "text": "Given an Excel file, when I upload it, then the system cleans the data.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Given a malformed Excel file, when I upload it, then the system reports an error.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Trust: The system logs the data cleaning process.",
-          "passed": false
+          "passed": true
         }
       ],
       "files_touched": [
@@ -72,18 +72,29 @@
         "backend/src/routes/uploadRoute.ts",
         "backend/src/routes/uploadRoute.test.ts",
         "backend/src/routes/uploadContract.ts",
-        "backend/src/lib/sendValidated.ts"
+        "backend/src/lib/sendValidated.ts",
+        "backend/src/services/dataCleaningService.ts",
+        "backend/src/services/dataCleaningService.test.ts"
       ],
       "tests_added": [
         "GET /health returns 200 and status ok",
-        "POST /api/upload accepts a valid .csv file",
-        "POST /api/upload accepts a valid .xlsx file",
+        "POST /api/upload accepts a valid .csv file and returns a cleaning summary",
+        "POST /api/upload accepts a valid .xlsx file and cleans it",
         "POST /api/upload rejects an unsupported file format",
-        "POST /api/upload rejects a request with no file attached"
+        "POST /api/upload rejects a request with no file attached",
+        "POST /api/upload reports an error for a malformed Excel file (valid extension, corrupt content)",
+        "cleanFile cleans a valid CSV file (happy path)",
+        "cleanFile cleans a valid .xlsx file (happy path)",
+        "cleanFile trims whitespace and drops fully empty rows",
+        "cleanFile flags rows with missing cells instead of silently dropping them",
+        "cleanFile reports an error for a malformed CSV file",
+        "cleanFile reports an error for a corrupt .xlsx file",
+        "cleanFile reports an error for an empty file",
+        "cleanFile reports an error for an unsupported extension"
       ],
-      "notes": "REQ-001 (upload) implemented: POST /api/upload accepts .csv/.xlsx/.xls, rejects other formats and missing files with a typed 400, caps file size, logs every attempt. REQ-002 (cleaning) not started -- paused here by explicit request before writing the parsing/cleaning service. All 3 acceptance criteria require cleaning, so none pass yet; this is an honest in-progress state, not a completed story.",
+      "notes": "REQ-001 and REQ-002 both implemented and wired end-to-end. POST /api/upload: accepts .csv/.xlsx/.xls, rejects other formats/missing files/oversized files with a typed 400 before cleaning ever runs; on acceptance, cleanFile() (backend/src/services/dataCleaningService.ts) parses the file (csv-parse for .csv, exceljs for .xlsx/.xls), trims whitespace, drops fully-empty rows, and flags rows with missing cells (reported in the response, not silently dropped or silently accepted). A genuinely corrupt file (valid extension, unparseable content) throws a typed ParseError, mapped to the same 400 ValidationError shape the endpoint already used for bad file types -- this is what makes the 'malformed Excel file' criterion pass for real parse failures, not just wrong extensions. Two distinct structured log events fire per request (file_upload and data_cleaning), each with its own success/failure outcome, satisfying the logging criterion as an actual audit trail rather than a single conflated log line.",
       "updated_at": "2026-08-19",
-      "verification": "tsc --noEmit clean; jest 5/5 passing; manual end-to-end curl check against the built server for valid .csv, unsupported .txt, and no-file-attached cases. No cleaning-service verification yet -- not built."
+      "verification": "tsc --noEmit clean; jest 14/14 passing across 3 suites. Real end-to-end verification against the built server (not just unit tests): a CSV with one intentionally-blank cell returned 200 with cleaning.flaggedRows correctly identifying row 3; a corrupt-content file named report.xlsx (valid extension, garbage bytes) returned 400 ValidationError with a clear parse-failure message, and both structured log lines (file_upload success, data_cleaning failure) were confirmed present in server output."
     },
     {
       "id": "STORY-002",

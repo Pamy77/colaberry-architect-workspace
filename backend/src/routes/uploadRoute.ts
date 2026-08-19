@@ -2,6 +2,7 @@ import path from 'path';
 import { Router, Request, Response, NextFunction } from 'express';
 import multer, { FileFilterCallback } from 'multer';
 import { sendValidated } from '../lib/sendValidated';
+import { cleanFile, ParseError } from '../services/dataCleaningService';
 import {
   ALLOWED_UPLOAD_EXTENSIONS,
   UPLOAD_MAX_BYTES,
@@ -37,23 +38,31 @@ const upload = multer({
   fileFilter,
 });
 
-function logUploadOutcome(outcome: 'success' | 'failure', context: Record<string, unknown>): void {
+function logEvent(event: string, outcome: 'success' | 'failure', context: Record<string, unknown>): void {
   console.log(
     JSON.stringify({
       timestamp: new Date().toISOString(),
       level: outcome === 'success' ? 'info' : 'warn',
       service: 'backend',
-      event: 'file_upload',
+      event,
       outcome,
       context,
     }),
   );
 }
 
+function logUploadOutcome(outcome: 'success' | 'failure', context: Record<string, unknown>): void {
+  logEvent('file_upload', outcome, context);
+}
+
+function logCleaningOutcome(outcome: 'success' | 'failure', context: Record<string, unknown>): void {
+  logEvent('data_cleaning', outcome, context);
+}
+
 export const uploadRouter = Router();
 
 uploadRouter.post('/upload', (req: Request, res: Response, next: NextFunction) => {
-  upload.single('file')(req, res, (err: unknown) => {
+  upload.single('file')(req, res, async (err: unknown) => {
     if (err) {
       next(err);
       return;
@@ -64,14 +73,42 @@ uploadRouter.post('/upload', (req: Request, res: Response, next: NextFunction) =
       return;
     }
 
+    logUploadOutcome('success', { filename: req.file.originalname, sizeBytes: req.file.size });
+
+    let cleaning;
+    try {
+      cleaning = await cleanFile(req.file.buffer, req.file.originalname);
+    } catch (cleaningErr) {
+      if (cleaningErr instanceof ParseError) {
+        logCleaningOutcome('failure', { filename: req.file.originalname, message: cleaningErr.message });
+        next(new UploadValidationError(cleaningErr.message));
+        return;
+      }
+      next(cleaningErr);
+      return;
+    }
+
+    logCleaningOutcome('success', {
+      filename: req.file.originalname,
+      totalDataRows: cleaning.totalDataRows,
+      cleanedRowCount: cleaning.cleanedRows.length,
+      flaggedRowCount: cleaning.flaggedRows.length,
+    });
+
     const payload: UploadSuccessResponse = {
       status: 'accepted',
       filename: req.file.originalname,
       sizeBytes: req.file.size,
       mimeType: req.file.mimetype,
+      cleaning: {
+        headers: cleaning.headers,
+        totalDataRows: cleaning.totalDataRows,
+        cleanedRowCount: cleaning.cleanedRows.length,
+        flaggedRowCount: cleaning.flaggedRows.length,
+        flaggedRows: cleaning.flaggedRows.map((r) => ({ rowNumber: r.rowNumber, reason: r.reason })),
+      },
     };
 
-    logUploadOutcome('success', { filename: payload.filename, sizeBytes: payload.sizeBytes });
     sendValidated(res, UploadSuccessResponseSchema, 200, payload);
   });
 });
