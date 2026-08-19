@@ -1,0 +1,189 @@
+{
+  "_purpose": "Command-Center-owned content with no platform data source: nav structure, SAMPLE-mode illustrative numbers, the draft data model, and the guardrail/role cross-reference analysis. Never touched by .colaberry/* platform syncs -- edit this file directly, not plan.json.",
+  "tabs": [
+    { "id": "overview", "label": "Overview", "built": true, "href": "index.html" },
+    { "id": "outcomes", "label": "Outcomes", "built": true, "href": "outcomes.html" },
+    { "id": "users", "label": "Users and use case", "built": true, "href": "users.html" },
+    { "id": "guardrails", "label": "Guardrails", "built": true, "href": "guardrails.html" },
+    { "id": "systems", "label": "Systems", "built": true, "href": "systems.html" },
+    { "id": "pm", "label": "Project management", "built": true, "href": "pm.html" },
+    { "id": "agents", "label": "AI agents", "built": true, "href": "agents.html" },
+    { "id": "kb", "label": "Knowledge base", "built": true, "href": "kb.html" },
+    { "id": "datamodel", "label": "Data model", "built": true, "href": "datamodel.html" }
+  ],
+  "sample": {
+    "systemsConnected": 3,
+    "live": [
+      "File upload wizard (sample)",
+      "KPI dashboard preview (sample)",
+      "Slack alert delivery (sample)"
+    ],
+    "outcomes": [
+      { "name": "Weekly report open rate", "current": "62%", "target": "80%", "trend": "up" },
+      { "name": "Insights needing manual correction", "current": "4 / week", "target": "< 2 / week", "trend": "down" },
+      { "name": "Time from upload to first insight", "current": "18 min", "target": "< 10 min", "trend": "flat" }
+    ]
+  },
+  "guardrailNotes": {
+    "REQ-010": "STORY-014's title (\"Maintain Record of Insights with Undo Capability\") is close to a direct paraphrase of this requirement.",
+    "REQ-013": "STORY-012's title (\"Verify KPI Changes Before Alerting\") is close to a direct paraphrase of this requirement.",
+    "REQ-017": "No story title matches this one as directly. STORY-011 (\"Establish Trust Spine for Data Processing\") is the closest thematic fit in r0 -- treat this link as inferred, not stated in the plan."
+  },
+  "roleLinks": {
+    "business owner": { "stories": [], "requirements": [] },
+    "financial analyst": { "stories": ["STORY-005"], "requirements": [] },
+    "business owner with limited tech skills": { "stories": [], "requirements": ["REQ-014"] },
+    "system administrator": { "stories": ["STORY-011"], "requirements": [] },
+    "business analyst": { "stories": ["STORY-012"], "requirements": [] },
+    "analyst": { "stories": ["STORY-013"], "requirements": ["REQ-016"] }
+  },
+  "dataModel": {
+    "entities": [
+      { "name": "Business", "purpose": "One small-business account using the Copilot.",
+        "fields": [
+          { "name": "id", "type": "uuid", "note": "primary key" },
+          { "name": "name", "type": "text" },
+          { "name": "owner_name", "type": "text", "note": "the business owner" },
+          { "name": "subscription_plan_id", "type": "uuid", "note": "FK -> SubscriptionPlan" },
+          { "name": "created_at", "type": "timestamp" }
+        ],
+        "relatedRequirements": [{ "id": "REQ-007", "confidence": "inferred" }] },
+      { "name": "SubscriptionPlan", "purpose": "One of the five pricing tiers and its upload limit.",
+        "fields": [
+          { "name": "id", "type": "uuid" },
+          { "name": "name", "type": "text", "note": "Free, $9/mo, $19/mo, $39/mo, $79/mo" },
+          { "name": "monthly_price_usd", "type": "integer" },
+          { "name": "upload_limit", "type": "integer" }
+        ],
+        "relatedRequirements": [{ "id": "REQ-007", "confidence": "explicit" }] },
+      { "name": "Integration", "purpose": "Connection status of one external system for one business.",
+        "fields": [
+          { "name": "id", "type": "uuid" },
+          { "name": "business_id", "type": "uuid", "note": "FK -> Business" },
+          { "name": "system_name", "type": "text", "note": "Excel, Google Sheets, Slack, Gmail, Outlook, QuickBooks, Dropbox, Google Drive" },
+          { "name": "status", "type": "text", "note": "connected / not_connected / error" },
+          { "name": "last_checked_at", "type": "timestamp", "note": "nullable" }
+        ],
+        "relatedRequirements": [{ "id": "REQ-006", "confidence": "explicit" }] },
+      { "name": "DataUpload", "purpose": "One Excel/CSV/Sheets upload event.",
+        "fields": [
+          { "name": "id", "type": "uuid" },
+          { "name": "business_id", "type": "uuid" },
+          { "name": "source_type", "type": "text", "note": "excel / csv / google_sheets / quickbooks" },
+          { "name": "uploaded_at", "type": "timestamp" },
+          { "name": "status", "type": "text", "note": "pending / cleaned / failed" },
+          { "name": "row_count", "type": "integer" }
+        ],
+        "relatedRequirements": [{ "id": "REQ-001", "confidence": "explicit" }, { "id": "REQ-018", "confidence": "explicit" }] },
+      { "name": "DataRecord", "purpose": "One cleaned data point from an upload (customer feedback, sales trends, inventory levels, recurring revenue, business facts, or subscription history).",
+        "fields": [
+          { "name": "id", "type": "uuid" },
+          { "name": "upload_id", "type": "uuid", "note": "FK -> DataUpload" },
+          { "name": "category", "type": "text" },
+          { "name": "period", "type": "date" },
+          { "name": "payload", "type": "jsonb", "note": "category-specific fields" }
+        ],
+        "relatedRequirements": [{ "id": "REQ-002", "confidence": "explicit" }, { "id": "REQ-015", "confidence": "explicit" }, { "id": "REQ-017", "confidence": "inferred" }] },
+      { "name": "KPI", "purpose": "One calculated KPI for a business and period, with its confidence level.",
+        "fields": [
+          { "name": "id", "type": "uuid" },
+          { "name": "business_id", "type": "uuid" },
+          { "name": "period", "type": "date" },
+          { "name": "name", "type": "text" },
+          { "name": "value", "type": "numeric" },
+          { "name": "evidence_level", "type": "text", "note": "high / medium / low" },
+          { "name": "calculated_at", "type": "timestamp" }
+        ],
+        "relatedRequirements": [{ "id": "REQ-003", "confidence": "explicit" }, { "id": "REQ-009", "confidence": "explicit" }] },
+      { "name": "Insight", "purpose": "One actionable insight derived from one or more KPIs.",
+        "fields": [
+          { "name": "id", "type": "uuid" },
+          { "name": "business_id", "type": "uuid" },
+          { "name": "kpi_id", "type": "uuid", "note": "nullable FK -> KPI" },
+          { "name": "headline", "type": "text" },
+          { "name": "detail", "type": "text" },
+          { "name": "confidence", "type": "numeric" },
+          { "name": "status", "type": "text", "note": "active / undone" },
+          { "name": "created_at", "type": "timestamp" }
+        ],
+        "relatedRequirements": [{ "id": "REQ-004", "confidence": "explicit" }, { "id": "REQ-010", "confidence": "inferred" }] },
+      { "name": "InsightRevision", "purpose": "One change to an insight's status -- the undo history REQ-010 requires.",
+        "fields": [
+          { "name": "id", "type": "uuid" },
+          { "name": "insight_id", "type": "uuid" },
+          { "name": "changed_at", "type": "timestamp" },
+          { "name": "changed_by", "type": "uuid", "note": "FK -> AppUser" },
+          { "name": "previous_status", "type": "text" },
+          { "name": "new_status", "type": "text" },
+          { "name": "reason", "type": "text", "note": "nullable" }
+        ],
+        "relatedRequirements": [{ "id": "REQ-010", "confidence": "explicit" }] },
+      { "name": "Clarification", "purpose": "A flag raised when the system is unsure about a KPI or insight and needs a person to resolve it.",
+        "fields": [
+          { "name": "id", "type": "uuid" },
+          { "name": "business_id", "type": "uuid" },
+          { "name": "kpi_id", "type": "uuid", "note": "nullable" },
+          { "name": "insight_id", "type": "uuid", "note": "nullable" },
+          { "name": "reason", "type": "text" },
+          { "name": "status", "type": "text", "note": "pending / resolved" },
+          { "name": "raised_at", "type": "timestamp" },
+          { "name": "resolved_at", "type": "timestamp", "note": "nullable" }
+        ],
+        "relatedRequirements": [{ "id": "REQ-008", "confidence": "explicit" }] },
+      { "name": "Alert", "purpose": "One notification actually sent for an insight, after the REQ-013 verification step.",
+        "fields": [
+          { "name": "id", "type": "uuid" },
+          { "name": "insight_id", "type": "uuid" },
+          { "name": "channel", "type": "text", "note": "email / slack" },
+          { "name": "verified", "type": "boolean" },
+          { "name": "verification_note", "type": "text", "note": "nullable" },
+          { "name": "sent_at", "type": "timestamp" },
+          { "name": "recipient", "type": "text" }
+        ],
+        "relatedRequirements": [{ "id": "REQ-005", "confidence": "explicit" }, { "id": "REQ-013", "confidence": "explicit" }] },
+      { "name": "UserFeedback", "purpose": "A person's rating/comment on whether an insight was accurate.",
+        "fields": [
+          { "name": "id", "type": "uuid" },
+          { "name": "insight_id", "type": "uuid" },
+          { "name": "submitted_by", "type": "uuid", "note": "FK -> AppUser" },
+          { "name": "accurate", "type": "boolean" },
+          { "name": "comment", "type": "text", "note": "nullable" },
+          { "name": "submitted_at", "type": "timestamp" }
+        ],
+        "relatedRequirements": [{ "id": "REQ-011", "confidence": "explicit" }] },
+      { "name": "SummaryReport", "purpose": "A generated report -- the plain-English summary (REQ-012) or the detailed analyst version (REQ-016).",
+        "fields": [
+          { "name": "id", "type": "uuid" },
+          { "name": "business_id", "type": "uuid" },
+          { "name": "period", "type": "date" },
+          { "name": "report_type", "type": "text", "note": "summary / detailed" },
+          { "name": "generated_at", "type": "timestamp" },
+          { "name": "content_ref", "type": "text", "note": "pointer to stored report content" }
+        ],
+        "relatedRequirements": [{ "id": "REQ-012", "confidence": "explicit" }, { "id": "REQ-016", "confidence": "explicit" }] },
+      { "name": "AppUser", "purpose": "A person who can log in -- carries a role (business owner, financial analyst, business analyst, analyst, system administrator).",
+        "fields": [
+          { "name": "id", "type": "uuid" },
+          { "name": "business_id", "type": "uuid" },
+          { "name": "name", "type": "text" },
+          { "name": "email", "type": "text" },
+          { "name": "role", "type": "text" }
+        ],
+        "relatedRequirements": [{ "id": "REQ-014", "confidence": "inferred" }] }
+    ],
+    "relationships": [
+      { "from": "Business", "to": "SubscriptionPlan", "cardinality": "*..1", "note": "each business is on one plan" },
+      { "from": "Business", "to": "Integration", "cardinality": "1..*", "note": "one row per external system" },
+      { "from": "Business", "to": "DataUpload", "cardinality": "1..*" },
+      { "from": "DataUpload", "to": "DataRecord", "cardinality": "1..*" },
+      { "from": "Business", "to": "KPI", "cardinality": "1..*" },
+      { "from": "KPI", "to": "Insight", "cardinality": "1..*" },
+      { "from": "Insight", "to": "InsightRevision", "cardinality": "1..*", "note": "undo history" },
+      { "from": "Insight", "to": "Alert", "cardinality": "1..*" },
+      { "from": "Insight", "to": "UserFeedback", "cardinality": "1..*" },
+      { "from": "KPI", "to": "Clarification", "cardinality": "1..*" },
+      { "from": "Business", "to": "SummaryReport", "cardinality": "1..*" },
+      { "from": "Business", "to": "AppUser", "cardinality": "1..*" }
+    ]
+  }
+}

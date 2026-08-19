@@ -6,6 +6,11 @@
   function render() {
     DATA = CC.DATA;
     var entitiesEl = document.getElementById("entities-grid");
+    if (!DATA.dataModel || DATA.dataModel.entities.length === 0) {
+      entitiesEl.innerHTML = '<p class="empty-state">No draft data model available yet.</p>';
+      document.getElementById("relationships-body").innerHTML = "";
+      return;
+    }
     entitiesEl.innerHTML = DATA.dataModel.entities
       .map(function (e) {
         return (

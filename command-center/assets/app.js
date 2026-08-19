@@ -20,21 +20,32 @@
 
     var cur = CC.currentRelease(today);
     var release = cur.release;
-    var total = CC.daysBetween(CC.parseDate(release.start), CC.parseDate(release.end)) || 1;
-    var elapsed = Math.max(0, Math.min(total, CC.daysBetween(CC.parseDate(release.start), today)));
-    var pct = Math.round((elapsed / total) * 100);
+    var noDates = cur.state === "no_dates";
+    var total, elapsed, pct;
+    if (!noDates) {
+      total = CC.daysBetween(CC.parseDate(release.start), CC.parseDate(release.end)) || 1;
+      elapsed = Math.max(0, Math.min(total, CC.daysBetween(CC.parseDate(release.start), today)));
+      pct = Math.round((elapsed / total) * 100);
+    }
 
-    var stateLabel = { in_progress: "In progress", not_started: "Not started", complete: "Complete" }[cur.state];
+    var stateLabel = noDates
+      ? "Schedule not yet set"
+      : { in_progress: "In progress", not_started: "Not started", complete: "Complete" }[cur.state];
+    var subtitle = release.storyCount + " stories · " + (
+      noDates
+        ? "Weeks " + release.weekStart + "–" + release.weekEnd + " (exact dates not set yet)"
+        : CC.fmtDate(release.start) + " → " + CC.fmtDate(release.end)
+    );
 
     document.getElementById("release-state").innerHTML =
       '<div class="hero">' +
       "<div>" +
       "<h1>" + release.id.toUpperCase() + " — " + release.name + "</h1>" +
-      "<p>" + release.storyCount + " stories · " + CC.fmtDate(release.start) + " → " + CC.fmtDate(release.end) + "</p>" +
+      "<p>" + subtitle + "</p>" +
       "</div>" +
       '<div class="hero__meta">' +
       '<span class="pill">' + stateLabel + "</span><br/>" +
-      (cur.state === "in_progress" ? "Day " + elapsed + " of " + total + " (" + pct + "%)" : "") +
+      (!noDates && cur.state === "in_progress" ? "Day " + elapsed + " of " + total + " (" + pct + "%)" : "") +
       "</div>" +
       "</div>";
 
@@ -87,21 +98,23 @@
 
     document.getElementById("timeline").innerHTML = DATA.releases
       .map(function (r) {
-        var isCurrent = r.id === release.id && cur.state === "in_progress";
+        var isCurrent = !noDates && r.id === release.id && cur.state === "in_progress";
+        var dates = noDates ? "Weeks " + r.weekStart + "–" + r.weekEnd : CC.fmtDate(r.start) + " – " + CC.fmtDate(r.end);
         return (
           '<div class="timeline__block' +
           (isCurrent ? " is-current" : "") +
           '">' +
           '<div class="timeline__block-id">' + r.id + "</div>" +
-          '<div class="timeline__block-dates">' + CC.fmtDate(r.start) + " – " + CC.fmtDate(r.end) + "</div>" +
+          '<div class="timeline__block-dates">' + dates + "</div>" +
           "</div>"
         );
       })
       .join("");
 
-    document.getElementById("timeline-markers").textContent =
-      "Build ends " + CC.fmtDate(DATA.timeline.buildEnds) + " · Demo day " + CC.fmtDate(DATA.timeline.demoDay) +
-      " (" + CC.daysBetween(today, CC.parseDate(DATA.timeline.demoDay)) + " days from today)";
+    var lastRelease = DATA.releases[DATA.releases.length - 1];
+    document.getElementById("timeline-markers").textContent = noDates
+      ? "Build-end and demo-day dates have not been set for this build yet."
+      : "Last release (" + lastRelease.id.toUpperCase() + ") ends " + CC.fmtDate(lastRelease.end) + ".";
   }
 
   CC.init("overview", renderOverview);

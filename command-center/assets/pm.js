@@ -3,25 +3,23 @@
 
   var DATA;
 
-  function pct(date, min, max) {
-    return ((date - min) / (max - min)) * 100;
-  }
-
   function render() {
     DATA = CC.DATA;
     var today = new Date();
     today.setHours(0, 0, 0, 0);
     var cur = CC.currentRelease(today);
+    var noDates = cur.state === "no_dates";
 
-    var min = CC.parseDate(DATA.releases[0].start);
-    var max = CC.parseDate(DATA.timeline.demoDay);
+    var minWeek = Math.min.apply(null, DATA.releases.map(function (r) { return r.weekStart; }));
+    var maxWeek = Math.max.apply(null, DATA.releases.map(function (r) { return r.weekEnd; }));
+    var span = maxWeek - minWeek + 1;
 
     var gantt = document.getElementById("gantt");
     gantt.innerHTML = DATA.releases
       .map(function (r) {
-        var left = pct(CC.parseDate(r.start), min, max);
-        var width = pct(CC.parseDate(r.end), min, max) - left;
-        var isCurrent = r.id === cur.release.id && cur.state === "in_progress";
+        var left = ((r.weekStart - minWeek) / span) * 100;
+        var width = ((r.weekEnd - r.weekStart + 1) / span) * 100;
+        var isCurrent = !noDates && r.id === cur.release.id && cur.state === "in_progress";
         return (
           '<div class="gantt-row">' +
           '<div class="gantt-row__label">' + r.id.toUpperCase() + "</div>" +
@@ -32,12 +30,9 @@
       })
       .join("");
 
-    var buildEndsPct = pct(CC.parseDate(DATA.timeline.buildEnds), min, max);
-    var demoDayPct = pct(CC.parseDate(DATA.timeline.demoDay), min, max);
     document.getElementById("gantt-legend").innerHTML =
-      "Timeline: " + CC.fmtDate(DATA.releases[0].start) + " → " + CC.fmtDate(DATA.timeline.demoDay) +
-      " · Build ends " + CC.fmtDate(DATA.timeline.buildEnds) + " (" + Math.round(buildEndsPct) + "%) · Demo day " +
-      CC.fmtDate(DATA.timeline.demoDay) + " (" + Math.round(demoDayPct) + "%)";
+      "Timeline: Week " + minWeek + " – Week " + maxWeek +
+      (noDates ? " (exact calendar dates not set yet)" : " · " + CC.fmtDate(DATA.releases[0].start) + " → " + CC.fmtDate(DATA.releases[DATA.releases.length - 1].end));
 
     var tasksBody = document.getElementById("tasks-body");
     tasksBody.innerHTML = DATA.stories

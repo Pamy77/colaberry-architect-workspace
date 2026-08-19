@@ -7,12 +7,18 @@
  * search index, wiring form listeners) that also needs the data loaded
  * first but isn't tied to the mode switch.
  *
- * Content comes from .colaberry/plan.json (structural: requirements,
- * stories, releases, roles, data model — doesn't change with real-world
- * progress) and .colaberry/progress.json (what has actually happened:
- * system connection status, live features), fetched at runtime and merged
- * into CC.DATA. .colaberry/manifest.json carries the generation
- * timestamps used to show how old that data is.
+ * Content comes from three sources merged into CC.DATA at runtime:
+ *  - .colaberry/plan.json / progress.json / manifest.json: the platform's
+ *    real synced data (requirements, stories, releases, systems, guardrails).
+ *    Overwritten on every platform sync -- never hand-edit these for
+ *    Command-Center-only content, it will be lost.
+ *  - assets/local-data.json: Command-Center-owned content the platform
+ *    schema has no field for (nav tabs, SAMPLE-mode illustrative numbers,
+ *    the draft data model, guardrail/role cross-reference notes). Edit
+ *    this file directly; it survives platform syncs.
+ * The platform schema doesn't always carry real calendar dates for
+ * releases (only week numbers) -- DATA.hasScheduleDates flags that so
+ * pages can fall back to week ranges instead of computing "day X of Y".
  */
 window.CC = (function () {
   "use strict";
@@ -37,35 +43,111 @@ window.CC = (function () {
     });
   }
 
-  function mergeData(plan, progress) {
-    var merged = Object.assign({}, plan);
-    var statusByName = {};
-    (progress.systems || []).forEach(function (s) {
-      statusByName[s.name] = s;
+  function normalizeRequirement(r) {
+    return { id: r.id, type: r.kind, text: r.statement, priority: r.priority, cluster: r.cluster };
+  }
+
+  function normalizeStory(s) {
+    return {
+      id: s.id,
+      title: s.title,
+      release: s.release,
+      owner: s.owner_agent,
+      due: s.due_on,
+      narrative: s.narrative,
+      acceptance: s.acceptance,
+      blockedBy: s.blocked_by,
+      failurePaths: s.failure_paths,
+      taskGuidance: s.task_guidance,
+      relatedRequirements: (s.fulfills || []).map(function (rid) {
+        return { id: rid, confidence: "explicit" };
+      }),
+    };
+  }
+
+  function normalizeRelease(r) {
+    return {
+      id: r.key,
+      name: r.name,
+      goal: r.goal,
+      demo: r.demo,
+      weekStart: r.week_start,
+      weekEnd: r.week_end,
+      start: r.starts_on || null,
+      end: r.ends_on || null,
+      storyCount: (r.story_ids || []).length,
+      stories: r.story_ids || [],
+    };
+  }
+
+  function deriveOwners(stories) {
+    var order = [];
+    var byName = {};
+    stories.forEach(function (s) {
+      if (!byName[s.owner]) {
+        byName[s.owner] = [];
+        order.push(s.owner);
+      }
+      byName[s.owner].push(s.id);
     });
-    merged.systems = (plan.systems || []).map(function (s) {
-      var live = statusByName[s.name] || {};
-      return { name: s.name, status: live.status || "not_connected", lastChecked: live.lastChecked || null };
+    return order.map(function (name) {
+      return { name: name, stories: byName[name] };
     });
-    merged.liveReal = progress.live || [];
-    return merged;
+  }
+
+  function mergeData(plan, progress, local) {
+    var requirements = (plan.requirements || []).map(normalizeRequirement);
+    var stories = (plan.stories || []).map(normalizeStory);
+    var releases = (plan.releases || []).map(normalizeRelease);
+    var systemNames = (plan.derived && plan.derived.systems) || [];
+    var systems = systemNames.map(function (name) {
+      return { name: name, status: "not_connected", lastChecked: null };
+    });
+    var guardrails = ((plan.derived && plan.derived.guardrails) || []).map(function (g) {
+      return g.id;
+    });
+    var roles = (plan.derived && plan.derived.roles) || [];
+    var hasScheduleDates = releases.length > 0 && releases.every(function (r) {
+      return r.start && r.end;
+    });
+
+    return {
+      projectName: plan.project_name,
+      requirements: requirements,
+      stories: stories,
+      releases: releases,
+      systems: systems,
+      guardrails: guardrails,
+      roles: roles,
+      owners: deriveOwners(stories),
+      liveReal: progress.live || [],
+      hasScheduleDates: hasScheduleDates,
+      tabs: local.tabs,
+      sample: local.sample,
+      dataModel: local.dataModel,
+      guardrailNotes: local.guardrailNotes,
+      roleLinks: local.roleLinks,
+    };
   }
 
   function load() {
     if (loadPromise) return loadPromise;
-    loadPromise = Promise.all([fetchJson("../.colaberry/plan.json"), fetchJson("../.colaberry/progress.json"), fetchJson("../.colaberry/manifest.json")]).then(
-      function (results) {
-        DATA = mergeData(results[0], results[1]);
-        MANIFEST = results[2];
-        publicApi.DATA = DATA;
-        publicApi.MANIFEST = MANIFEST;
-        isReady = true;
-        readyQueue.forEach(function (fn) {
-          fn();
-        });
-        readyQueue = [];
-      }
-    );
+    loadPromise = Promise.all([
+      fetchJson("../.colaberry/plan.json"),
+      fetchJson("../.colaberry/progress.json"),
+      fetchJson("../.colaberry/manifest.json"),
+      fetchJson("assets/local-data.json"),
+    ]).then(function (results) {
+      DATA = mergeData(results[0], results[1], results[3]);
+      MANIFEST = results[2];
+      publicApi.DATA = DATA;
+      publicApi.MANIFEST = MANIFEST;
+      isReady = true;
+      readyQueue.forEach(function (fn) {
+        fn();
+      });
+      readyQueue = [];
+    });
     return loadPromise;
   }
 
@@ -97,7 +179,7 @@ window.CC = (function () {
     if (!el) return;
     el.innerHTML =
       '<div class="topbar__brand">' +
-      '<span class="topbar__name">' + DATA.product.name + "</span>" +
+      '<span class="topbar__name">' + DATA.projectName + "</span>" +
       '<span class="topbar__subtitle">Command Center</span>' +
       "</div>" +
       '<div class="mode-switch" role="group" aria-label="Sample or real data">' +
@@ -127,17 +209,15 @@ window.CC = (function () {
 
   function buildFreshnessBanner() {
     var main = document.querySelector("main.page");
-    if (!main || !MANIFEST) return;
-    var planAt = parseDate(MANIFEST.planGeneratedAt);
-    var progAt = parseDate(MANIFEST.progressGeneratedAt);
-    var older = planAt < progAt ? planAt : progAt;
-    var ageMs = Date.now() - older.getTime();
+    if (!main || !MANIFEST || !MANIFEST.generated_at) return;
+    var generatedAt = new Date(MANIFEST.generated_at);
+    var ageMs = Date.now() - generatedAt.getTime();
     var ageDays = Math.max(0, Math.floor(ageMs / (1000 * 60 * 60 * 24)));
     var stale = ageDays > 7;
     var el = document.createElement("div");
     el.className = "freshness-banner" + (stale ? " freshness-banner--stale" : "");
     el.textContent =
-      "Data as of " + older.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) +
+      "Data as of " + generatedAt.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) +
       " · " + ageDays + " day" + (ageDays === 1 ? "" : "s") + " old" +
       (stale ? " — more than a week old, may be out of date" : "");
     main.insertBefore(el, main.firstChild);
@@ -168,6 +248,7 @@ window.CC = (function () {
   }
 
   function fmtDate(str) {
+    if (!str) return "Not set";
     return parseDate(str).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
   }
 
@@ -194,6 +275,9 @@ window.CC = (function () {
   }
 
   function currentRelease(today) {
+    if (!DATA.hasScheduleDates) {
+      return { release: DATA.releases[0], state: "no_dates" };
+    }
     for (var i = 0; i < DATA.releases.length; i++) {
       var r = DATA.releases[i];
       if (today >= parseDate(r.start) && today <= parseDate(r.end)) {
