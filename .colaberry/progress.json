@@ -3,13 +3,13 @@
   "project": "Small Business KPI Copilot",
   "totals": {
     "stories_total": 15,
-    "stories_verified": 0,
+    "stories_verified": 1,
     "stories_submitted": 0,
-    "stories_in_progress": 0,
-    "stories_not_started": 15,
+    "stories_in_progress": 14,
+    "stories_not_started": 0,
     "criteria_total": 47,
-    "criteria_passed": 0,
-    "points_awarded": 0
+    "criteria_passed": 3,
+    "points_awarded": 53
   },
   "stories": [
     {
@@ -26,11 +26,11 @@
           "passed": false
         },
         {
-          "text": "Given the data files, when any tab renders, then its content comes from .colaberry/plan.json and .colaberry/progress.json read at runtime rather than from hard-coded values.",
+          "text": "Given the Command Center, when any tab renders, then .colaberry/plan.json and .colaberry/progress.json are both committed in this repo and every tab reads its content from them at runtime rather than from hard-coded values.",
           "passed": false
         },
         {
-          "text": "Given .colaberry/manifest.json, when any tab is shown, then it displays how old the data is and warns when that age exceeds a week.",
+          "text": "Given the Command Center, when any tab is shown, then .colaberry/manifest.json is committed in this repo and every tab shows how old that data is and warns when the age exceeds a week.",
           "passed": false
         },
         {
@@ -42,7 +42,23 @@
       "tests_added": [],
       "notes": null,
       "updated_at": null,
-      "verification": null
+      "verification": {
+        "state": "in_progress",
+        "criteria_passed": 0,
+        "criteria_total": 5,
+        "verified_at": null,
+        "commit_sha": "be8b62871a75e3aae3e0cbff3e4c5e961592ff61",
+        "commit_url": "https://github.com/Pamy77/colaberry-architect-workspace/commit/be8b62871a75e3aae3e0cbff3e4c5e961592ff61",
+        "commit_at": "2026-08-17T20:57:47Z",
+        "points_awarded": null,
+        "outstanding": [
+          "Given the Command Center, when it is opened, then every tab is reachable and every card drills down one level.",
+          "Given sample mode, when any tab is shown, then the sample data is visibly labelled as sample.",
+          "Given the data files, when any tab renders, then its content comes from .colaberry/plan.json and .colaberry/progress.json read at runtime rather than from hard-coded values.",
+          "Given .colaberry/manifest.json, when any tab is shown, then it displays how old the data is and warns when that age exceeds a week.",
+          "Trust — no tab shows a number, a connection or a result the project has not actually produced."
+        ]
+      }
     },
     {
       "id": "STORY-001",
@@ -94,7 +110,17 @@
       ],
       "notes": "REQ-001 and REQ-002 both implemented and wired end-to-end. POST /api/upload: accepts .csv/.xlsx/.xls, rejects other formats/missing files/oversized files with a typed 400 before cleaning ever runs; on acceptance, cleanFile() (backend/src/services/dataCleaningService.ts) parses the file (csv-parse for .csv, exceljs for .xlsx/.xls), trims whitespace, drops fully-empty rows, and flags rows with missing cells (reported in the response, not silently dropped or silently accepted). A genuinely corrupt file (valid extension, unparseable content) throws a typed ParseError, mapped to the same 400 ValidationError shape the endpoint already used for bad file types -- this is what makes the 'malformed Excel file' criterion pass for real parse failures, not just wrong extensions. Two distinct structured log events fire per request (file_upload and data_cleaning), each with its own success/failure outcome, satisfying the logging criterion as an actual audit trail rather than a single conflated log line.",
       "updated_at": "2026-08-19",
-      "verification": "tsc --noEmit clean; jest 14/14 passing across 3 suites. Real end-to-end verification against the built server (not just unit tests): a CSV with one intentionally-blank cell returned 200 with cleaning.flaggedRows correctly identifying row 3; a corrupt-content file named report.xlsx (valid extension, garbage bytes) returned 400 ValidationError with a clear parse-failure message, and both structured log lines (file_upload success, data_cleaning failure) were confirmed present in server output."
+      "verification": {
+        "state": "verified",
+        "criteria_passed": 3,
+        "criteria_total": 3,
+        "verified_at": "2026-08-19T05:22:29.240Z",
+        "commit_sha": "26642e3d653c314ce81c4863d60efcabe9304c92",
+        "commit_url": "https://github.com/Pamy77/colaberry-architect-workspace/commit/26642e3d653c314ce81c4863d60efcabe9304c92",
+        "commit_at": "2026-08-19T03:32:09Z",
+        "points_awarded": 53,
+        "outstanding": []
+      }
     },
     {
       "id": "STORY-002",
@@ -118,7 +144,21 @@
       "tests_added": [],
       "notes": null,
       "updated_at": null,
-      "verification": null
+      "verification": {
+        "state": "in_progress",
+        "criteria_passed": 0,
+        "criteria_total": 3,
+        "verified_at": null,
+        "commit_sha": null,
+        "commit_url": null,
+        "commit_at": null,
+        "points_awarded": null,
+        "outstanding": [
+          "Given cleaned data, when KPIs are calculated, then they are displayed correctly.",
+          "Given incomplete data, when KPIs are calculated, then the system requests clarification.",
+          "Trust: The system logs KPI calculations and evidence levels."
+        ]
+      }
     },
     {
       "id": "STORY-003",
@@ -142,7 +182,21 @@
       "tests_added": [],
       "notes": null,
       "updated_at": null,
-      "verification": null
+      "verification": {
+        "state": "in_progress",
+        "criteria_passed": 0,
+        "criteria_total": 3,
+        "verified_at": null,
+        "commit_sha": null,
+        "commit_url": null,
+        "commit_at": null,
+        "points_awarded": null,
+        "outstanding": [
+          "Given calculated KPIs, when I access the dashboard, then they are displayed clearly.",
+          "Given no KPIs, when I access the dashboard, then it shows a message indicating no data.",
+          "Trust: The system logs dashboard access and interactions."
+        ]
+      }
     },
     {
       "id": "STORY-004",
@@ -166,7 +220,21 @@
       "tests_added": [],
       "notes": null,
       "updated_at": null,
-      "verification": null
+      "verification": {
+        "state": "in_progress",
+        "criteria_passed": 0,
+        "criteria_total": 3,
+        "verified_at": null,
+        "commit_sha": null,
+        "commit_url": null,
+        "commit_at": null,
+        "points_awarded": null,
+        "outstanding": [
+          "Given significant KPI changes, when they occur, then the system sends an alert via email.",
+          "Given no significant changes, when I check alerts, then no new alerts are sent.",
+          "Trust: The system logs all alerts sent and their contents."
+        ]
+      }
     },
     {
       "id": "STORY-005",
@@ -190,7 +258,21 @@
       "tests_added": [],
       "notes": null,
       "updated_at": null,
-      "verification": null
+      "verification": {
+        "state": "in_progress",
+        "criteria_passed": 0,
+        "criteria_total": 3,
+        "verified_at": null,
+        "commit_sha": null,
+        "commit_url": null,
+        "commit_at": null,
+        "points_awarded": null,
+        "outstanding": [
+          "Given data is available in Google Sheets and QuickBooks, when synchronization is initiated, then the data should be accurately reflected in the system.",
+          "Given a failure in data synchronization, when the system retries, then the synchronization should complete successfully without data loss.",
+          "Trust: Every synchronization attempt must be logged with a timestamp and status."
+        ]
+      }
     },
     {
       "id": "STORY-006",
@@ -214,7 +296,21 @@
       "tests_added": [],
       "notes": null,
       "updated_at": null,
-      "verification": null
+      "verification": {
+        "state": "in_progress",
+        "criteria_passed": 0,
+        "criteria_total": 3,
+        "verified_at": null,
+        "commit_sha": null,
+        "commit_url": null,
+        "commit_at": null,
+        "points_awarded": null,
+        "outstanding": [
+          "Given a subscription plan, when I select it, then my account is updated accordingly.",
+          "Given an expired plan, when I try to upload data, then the system prompts for renewal.",
+          "Trust: The system logs all subscription changes and usage."
+        ]
+      }
     },
     {
       "id": "STORY-007",
@@ -238,7 +334,21 @@
       "tests_added": [],
       "notes": null,
       "updated_at": null,
-      "verification": null
+      "verification": {
+        "state": "in_progress",
+        "criteria_passed": 0,
+        "criteria_total": 3,
+        "verified_at": null,
+        "commit_sha": null,
+        "commit_url": null,
+        "commit_at": null,
+        "points_awarded": null,
+        "outstanding": [
+          "Given uncertain KPI calculations, when they occur, then the system requests clarification.",
+          "Given a KPI with low confidence, when displayed, then it shows the evidence level.",
+          "Trust: The system logs all uncertainty handling and evidence levels."
+        ]
+      }
     },
     {
       "id": "STORY-008",
@@ -262,7 +372,21 @@
       "tests_added": [],
       "notes": null,
       "updated_at": null,
-      "verification": null
+      "verification": {
+        "state": "in_progress",
+        "criteria_passed": 0,
+        "criteria_total": 3,
+        "verified_at": null,
+        "commit_sha": null,
+        "commit_url": null,
+        "commit_at": null,
+        "points_awarded": null,
+        "outstanding": [
+          "Given business actions, when a report is generated, then it includes all relevant decisions.",
+          "Given no actions, when a report is generated, then it indicates no actions taken.",
+          "Trust: The system logs all report generation activities."
+        ]
+      }
     },
     {
       "id": "STORY-009",
@@ -286,7 +410,21 @@
       "tests_added": [],
       "notes": null,
       "updated_at": null,
-      "verification": null
+      "verification": {
+        "state": "in_progress",
+        "criteria_passed": 0,
+        "criteria_total": 3,
+        "verified_at": null,
+        "commit_sha": null,
+        "commit_url": null,
+        "commit_at": null,
+        "points_awarded": null,
+        "outstanding": [
+          "Given an insight, when I provide feedback, then the system records it.",
+          "Given no feedback, when I check insights, then the system prompts for feedback.",
+          "Trust: The system logs all feedback received and its impact."
+        ]
+      }
     },
     {
       "id": "STORY-010",
@@ -310,7 +448,21 @@
       "tests_added": [],
       "notes": null,
       "updated_at": null,
-      "verification": null
+      "verification": {
+        "state": "in_progress",
+        "criteria_passed": 0,
+        "criteria_total": 3,
+        "verified_at": null,
+        "commit_sha": null,
+        "commit_url": null,
+        "commit_at": null,
+        "points_awarded": null,
+        "outstanding": [
+          "Given the dashboard, when accessed, then it is simple and intuitive.",
+          "Given a complex interface, when simplified, then user satisfaction increases.",
+          "Trust: The system logs user interactions and feedback on interface changes."
+        ]
+      }
     },
     {
       "id": "STORY-011",
@@ -334,7 +486,21 @@
       "tests_added": [],
       "notes": null,
       "updated_at": null,
-      "verification": null
+      "verification": {
+        "state": "in_progress",
+        "criteria_passed": 0,
+        "criteria_total": 3,
+        "verified_at": null,
+        "commit_sha": null,
+        "commit_url": null,
+        "commit_at": null,
+        "points_awarded": null,
+        "outstanding": [
+          "Given data is processed, when a processing error occurs, then the system should retry the operation without duplicating data.",
+          "Given data processing is complete, when an audit is conducted, then all processing steps should be logged with timestamps.",
+          "Trust: Every data processing step must be logged with a unique identifier and status."
+        ]
+      }
     },
     {
       "id": "STORY-012",
@@ -358,7 +524,21 @@
       "tests_added": [],
       "notes": null,
       "updated_at": null,
-      "verification": null
+      "verification": {
+        "state": "in_progress",
+        "criteria_passed": 0,
+        "criteria_total": 3,
+        "verified_at": null,
+        "commit_sha": null,
+        "commit_url": null,
+        "commit_at": null,
+        "points_awarded": null,
+        "outstanding": [
+          "Given a significant change in KPI, when the system detects the change, then it should verify the change before sending an alert.",
+          "Given a false positive KPI change, when verification fails, then no alert should be sent.",
+          "Trust: Every KPI change verification must be logged with the result and timestamp."
+        ]
+      }
     },
     {
       "id": "STORY-013",
@@ -382,7 +562,21 @@
       "tests_added": [],
       "notes": null,
       "updated_at": null,
-      "verification": null
+      "verification": {
+        "state": "in_progress",
+        "criteria_passed": 0,
+        "criteria_total": 3,
+        "verified_at": null,
+        "commit_sha": null,
+        "commit_url": null,
+        "commit_at": null,
+        "points_awarded": null,
+        "outstanding": [
+          "Given data is available, when report generation is initiated, then a detailed report should be produced with all relevant metrics.",
+          "Given incomplete data, when report generation is attempted, then the system should notify the user of missing data.",
+          "Trust: Every report generation must be logged with the parameters used and timestamp."
+        ]
+      }
     },
     {
       "id": "STORY-014",
@@ -406,7 +600,21 @@
       "tests_added": [],
       "notes": null,
       "updated_at": null,
-      "verification": null
+      "verification": {
+        "state": "in_progress",
+        "criteria_passed": 0,
+        "criteria_total": 3,
+        "verified_at": null,
+        "commit_sha": null,
+        "commit_url": null,
+        "commit_at": null,
+        "points_awarded": null,
+        "outstanding": [
+          "Given an insight is recorded, when a change is made, then the system should allow the user to undo the change.",
+          "Given a user attempts to undo a change, when the change is reversible, then the system should restore the previous state.",
+          "Trust: Every insight change and undo action must be logged with a timestamp."
+        ]
+      }
     }
   ]
 }
