@@ -3,6 +3,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import multer, { FileFilterCallback } from 'multer';
 import { sendValidated } from '../lib/sendValidated';
 import { cleanFile, ParseError } from '../services/dataCleaningService';
+import { calculateKpis, logKpiCalculation } from '../services/kpiService';
 import {
   ALLOWED_UPLOAD_EXTENSIONS,
   UPLOAD_MAX_BYTES,
@@ -96,6 +97,23 @@ uploadRouter.post('/upload', (req: Request, res: Response, next: NextFunction) =
       flaggedRowCount: cleaning.flaggedRows.length,
     });
 
+    // KPI calculation runs on the cleaned data. calculateKpis is total for
+    // data-shaped problems (it returns clarificationsNeeded rather than
+    // throwing); a throw here would be an unexpected bug, so map it to the
+    // generic 500 path and still leave an audit line.
+    let kpiResult;
+    try {
+      kpiResult = calculateKpis(cleaning);
+    } catch (kpiErr) {
+      logEvent('kpi_calculation', 'failure', {
+        filename: req.file.originalname,
+        message: (kpiErr as Error).message,
+      });
+      next(kpiErr);
+      return;
+    }
+    logKpiCalculation(kpiResult, { filename: req.file.originalname });
+
     const payload: UploadSuccessResponse = {
       status: 'accepted',
       filename: req.file.originalname,
@@ -108,6 +126,7 @@ uploadRouter.post('/upload', (req: Request, res: Response, next: NextFunction) =
         flaggedRowCount: cleaning.flaggedRows.length,
         flaggedRows: cleaning.flaggedRows.map((r) => ({ rowNumber: r.rowNumber, reason: r.reason })),
       },
+      kpis: kpiResult,
     };
 
     sendValidated(res, UploadSuccessResponseSchema, 200, payload);

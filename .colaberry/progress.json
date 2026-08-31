@@ -129,35 +129,54 @@
       "criteria": [
         {
           "text": "Given cleaned data, when KPIs are calculated, then they are displayed correctly.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Given incomplete data, when KPIs are calculated, then the system requests clarification.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Trust: The system logs KPI calculations and evidence levels.",
-          "passed": false
+          "passed": true
         }
       ],
-      "files_touched": [],
-      "tests_added": [],
-      "notes": null,
-      "updated_at": null,
+      "files_touched": [
+        "backend/src/services/kpiService.ts",
+        "backend/src/services/kpiService.test.ts",
+        "backend/src/routes/uploadRoute.ts",
+        "backend/src/routes/uploadContract.ts",
+        "backend/src/routes/uploadRoute.test.ts",
+        "directives/02-kpi-calculation.md"
+      ],
+      "tests_added": [
+        "kpiService.test.ts: happy path (column + derived business KPIs)",
+        "kpiService.test.ts: unique KPI keys",
+        "kpiService.test.ts: generic numeric column, no business meaning",
+        "kpiService.test.ts: low-coverage missing cells -> clarification",
+        "kpiService.test.ts: inconsistent column (numeric + text) flagged",
+        "kpiService.test.ts: no data rows -> no_data, no KPIs",
+        "kpiService.test.ts: all-text columns -> no_numeric_columns",
+        "kpiService.test.ts: divide-by-zero guard (revenue = 0)",
+        "kpiService.test.ts: revenue without expenses -> missing_kpi_inputs",
+        "kpiService.test.ts: evidence-level boundaries",
+        "kpiService.test.ts: currency-formatted value normalization",
+        "kpiService.test.ts: logKpiCalculation shape + evidence levels",
+        "kpiService.test.ts: logKpiCalculation warn/partial branch",
+        "uploadRoute.test.ts: KPIs calculated + audit line carries evidence levels",
+        "uploadRoute.test.ts: incomplete data -> 200 + clarificationsNeeded"
+      ],
+      "notes": "calculateKpis is pure/total and independently tested; wired into POST /api/upload. Evidence level per KPI from column coverage; clarificationsNeeded[] drives the \"requests clarification\" criterion; needs_clarification returns HTTP 200 with partial KPIs. kpi_calculation audit line carries per-KPI evidence levels. See directives/02-kpi-calculation.md.",
+      "updated_at": "2026-08-31T21:40:00Z",
       "verification": {
-        "state": "in_progress",
-        "criteria_passed": 0,
+        "state": "verified",
+        "criteria_passed": 3,
         "criteria_total": 3,
-        "verified_at": null,
+        "verified_at": "2026-08-31T21:40:00Z",
         "commit_sha": null,
         "commit_url": null,
         "commit_at": null,
         "points_awarded": null,
-        "outstanding": [
-          "Given cleaned data, when KPIs are calculated, then they are displayed correctly.",
-          "Given incomplete data, when KPIs are calculated, then the system requests clarification.",
-          "Trust: The system logs KPI calculations and evidence levels."
-        ]
+        "outstanding": []
       }
     },
     {
