@@ -66,4 +66,18 @@ describe('cleanFile', () => {
     const buf = Buffer.from('hello');
     await expect(cleanFile(buf, 'notes.txt')).rejects.toThrow(ParseError);
   });
+
+  it('reports an error when data rows exceed the configured cap', async () => {
+    const lines = ['date,revenue', ...Array.from({ length: 5 }, (_, i) => `2026-01-0${i + 1},100`)];
+    const csv = Buffer.from(lines.join('\n'));
+    await expect(cleanFile(csv, 'sales.csv', 3)).rejects.toThrow(ParseError);
+    await expect(cleanFile(csv, 'sales.csv', 3)).rejects.toThrow(/row limit/);
+  });
+
+  it('accepts data rows at or under the configured cap', async () => {
+    const lines = ['date,revenue', ...Array.from({ length: 3 }, (_, i) => `2026-01-0${i + 1},100`)];
+    const csv = Buffer.from(lines.join('\n'));
+    const result = await cleanFile(csv, 'sales.csv', 3);
+    expect(result.totalDataRows).toBe(3);
+  });
 });

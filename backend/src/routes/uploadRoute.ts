@@ -6,6 +6,7 @@ import { cleanFile, ParseError } from '../services/dataCleaningService';
 import {
   ALLOWED_UPLOAD_EXTENSIONS,
   UPLOAD_MAX_BYTES,
+  UPLOAD_MAX_ROWS,
   UploadErrorResponse,
   UploadErrorResponseSchema,
   UploadSuccessResponse,
@@ -77,7 +78,7 @@ uploadRouter.post('/upload', (req: Request, res: Response, next: NextFunction) =
 
     let cleaning;
     try {
-      cleaning = await cleanFile(req.file.buffer, req.file.originalname);
+      cleaning = await cleanFile(req.file.buffer, req.file.originalname, UPLOAD_MAX_ROWS);
     } catch (cleaningErr) {
       if (cleaningErr instanceof ParseError) {
         logCleaningOutcome('failure', { filename: req.file.originalname, message: cleaningErr.message });

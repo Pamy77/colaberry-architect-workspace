@@ -6,6 +6,10 @@ export const UPLOAD_MAX_BYTES = process.env.UPLOAD_MAX_BYTES
 
 export const ALLOWED_UPLOAD_EXTENSIONS = ['.csv', '.xls', '.xlsx'] as const;
 
+export const UPLOAD_MAX_ROWS = process.env.UPLOAD_MAX_ROWS
+  ? Number(process.env.UPLOAD_MAX_ROWS)
+  : 50_000;
+
 export const CleaningSummarySchema = z.object({
   headers: z.array(z.string()),
   totalDataRows: z.number().int().nonnegative(),

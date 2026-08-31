@@ -27,6 +27,12 @@ export interface CleaningResult {
   totalDataRows: number;
 }
 
+// Cleaning runs synchronously in the request handler (see uploadRoute.ts) — an
+// unbounded row count can block the event loop regardless of file byte size
+// (e.g. a narrow, many-row CSV). This cap is the row-side complement to
+// UPLOAD_MAX_BYTES until cleaning moves to a background job.
+export const DEFAULT_MAX_DATA_ROWS = 50_000;
+
 function parseCsvToRows(buffer: Buffer, filename: string): string[][] {
   try {
     return parseCsvSync(buffer, { skip_empty_lines: true, relax_column_count: true }) as string[][];
@@ -68,13 +74,19 @@ function parseToRows(buffer: Buffer, filename: string): Promise<string[][]> {
   return Promise.reject(new ParseError(`Unsupported file extension "${extension}" for cleaning.`));
 }
 
-function cleanRows(rows: string[][]): CleaningResult {
+function cleanRows(rows: string[][], maxDataRows: number): CleaningResult {
   if (rows.length === 0) {
     throw new ParseError('File contains no rows.');
   }
 
   const headers = rows[0].map((h) => (h || '').trim());
   const dataRows = rows.slice(1);
+
+  if (dataRows.length > maxDataRows) {
+    throw new ParseError(
+      `File has ${dataRows.length} data rows, which exceeds the ${maxDataRows}-row limit.`,
+    );
+  }
 
   const cleanedRows: CleanedRow[] = [];
   const flaggedRows: FlaggedRow[] = [];
@@ -101,7 +113,11 @@ function cleanRows(rows: string[][]): CleaningResult {
   return { headers, cleanedRows, flaggedRows, totalDataRows: dataRows.length };
 }
 
-export async function cleanFile(buffer: Buffer, filename: string): Promise<CleaningResult> {
+export async function cleanFile(
+  buffer: Buffer,
+  filename: string,
+  maxDataRows: number = DEFAULT_MAX_DATA_ROWS,
+): Promise<CleaningResult> {
   const rows = await parseToRows(buffer, filename);
-  return cleanRows(rows);
+  return cleanRows(rows, maxDataRows);
 }
