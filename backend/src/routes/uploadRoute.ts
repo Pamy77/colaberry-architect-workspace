@@ -5,6 +5,15 @@ import { sendValidated } from '../lib/sendValidated';
 import { cleanFile, ParseError } from '../services/dataCleaningService';
 import { calculateKpis, logKpiCalculation } from '../services/kpiService';
 import {
+  checkIdempotency,
+  deriveIdempotencyKey,
+  newRun,
+  RecentRuns,
+  rememberRun,
+  runStep,
+  terminalWhenNamed,
+} from '../services/processingAudit';
+import {
   ALLOWED_UPLOAD_EXTENSIONS,
   UPLOAD_MAX_BYTES,
   UPLOAD_MAX_ROWS,
@@ -40,25 +49,34 @@ const upload = multer({
   fileFilter,
 });
 
-function logEvent(event: string, outcome: 'success' | 'failure', context: Record<string, unknown>): void {
+// Bounded, in-process registry of recently completed processing runs, keyed on
+// upload content. Lets a re-submitted identical upload (double-click, client
+// retry) be answered from the previous run instead of parsed/cleaned/calculated
+// a second time. Size is env-configurable; see RecentRuns for the per-process /
+// restart-clears-it caveat (durable dedupe is a later persistence story).
+const DEDUP_CACHE_SIZE = process.env.PROCESSING_DEDUP_CACHE_SIZE
+  ? Number(process.env.PROCESSING_DEDUP_CACHE_SIZE)
+  : 256;
+
+// Exported so the test suite can clear it between cases; not part of the route contract.
+export const recentRuns = new RecentRuns<UploadSuccessResponse>(DEDUP_CACHE_SIZE);
+
+// cleanFile throws ParseError for deterministically-bad input (corrupt file, no
+// rows) — retrying that would just fail again, so it is terminal. Any other
+// throw from the clean step is treated as transient and retried by runStep.
+const cleaningIsRetryable = terminalWhenNamed('ParseError');
+
+function logUploadError(context: Record<string, unknown>): void {
   console.log(
     JSON.stringify({
       timestamp: new Date().toISOString(),
-      level: outcome === 'success' ? 'info' : 'warn',
+      level: 'warn',
       service: 'backend',
-      event,
-      outcome,
+      event: 'file_upload',
+      outcome: 'failure',
       context,
     }),
   );
-}
-
-function logUploadOutcome(outcome: 'success' | 'failure', context: Record<string, unknown>): void {
-  logEvent('file_upload', outcome, context);
-}
-
-function logCleaningOutcome(outcome: 'success' | 'failure', context: Record<string, unknown>): void {
-  logEvent('data_cleaning', outcome, context);
 }
 
 export const uploadRouter = Router();
@@ -75,14 +93,39 @@ uploadRouter.post('/upload', (req: Request, res: Response, next: NextFunction) =
       return;
     }
 
-    logUploadOutcome('success', { filename: req.file.originalname, sizeBytes: req.file.size });
+    const file = req.file;
+    const run = newRun();
+    res.setHeader('X-Correlation-ID', run.runId);
+    const auditContext = { filename: file.originalname, sizeBytes: file.size };
 
+    // Step: record that the upload arrived. Nothing to retry — receiving already
+    // happened — but it belongs in the correlation-linked audit trail.
+    await runStep(run, 'receive_upload', () => ({ mimeType: file.mimetype }), {
+      retries: 0,
+      context: auditContext,
+    });
+
+    // Step: has this exact upload already been fully processed? If so, answer
+    // from the previous run instead of doing the work again.
+    const idempotencyKey = deriveIdempotencyKey(file.buffer, file.originalname);
+    const decision = checkIdempotency(run, recentRuns, idempotencyKey);
+    if (decision.duplicate && decision.priorResult) {
+      sendValidated(res, UploadSuccessResponseSchema, 200, decision.priorResult);
+      return;
+    }
+
+    // Step: parse + clean. ParseError -> 400 (terminal); any other error is
+    // retried with backoff by runStep before it surfaces.
     let cleaning;
     try {
-      cleaning = await cleanFile(req.file.buffer, req.file.originalname, UPLOAD_MAX_ROWS);
+      cleaning = await runStep(
+        run,
+        'clean_data',
+        () => cleanFile(file.buffer, file.originalname, UPLOAD_MAX_ROWS),
+        { isRetryable: cleaningIsRetryable, context: auditContext },
+      );
     } catch (cleaningErr) {
       if (cleaningErr instanceof ParseError) {
-        logCleaningOutcome('failure', { filename: req.file.originalname, message: cleaningErr.message });
         next(new UploadValidationError(cleaningErr.message));
         return;
       }
@@ -90,35 +133,27 @@ uploadRouter.post('/upload', (req: Request, res: Response, next: NextFunction) =
       return;
     }
 
-    logCleaningOutcome('success', {
-      filename: req.file.originalname,
-      totalDataRows: cleaning.totalDataRows,
-      cleanedRowCount: cleaning.cleanedRows.length,
-      flaggedRowCount: cleaning.flaggedRows.length,
-    });
-
-    // KPI calculation runs on the cleaned data. calculateKpis is total for
-    // data-shaped problems (it returns clarificationsNeeded rather than
-    // throwing); a throw here would be an unexpected bug, so map it to the
-    // generic 500 path and still leave an audit line.
+    // Step: calculate KPIs. calculateKpis is total for data-shaped problems (it
+    // returns clarificationsNeeded rather than throwing), so a throw here is an
+    // unexpected bug, not a transient fault — surface it immediately (retries: 0)
+    // via the generic 500 path, with the gave_up audit line already written.
     let kpiResult;
     try {
-      kpiResult = calculateKpis(cleaning);
-    } catch (kpiErr) {
-      logEvent('kpi_calculation', 'failure', {
-        filename: req.file.originalname,
-        message: (kpiErr as Error).message,
+      kpiResult = await runStep(run, 'calculate_kpis', () => calculateKpis(cleaning), {
+        retries: 0,
+        context: auditContext,
       });
+    } catch (kpiErr) {
       next(kpiErr);
       return;
     }
-    logKpiCalculation(kpiResult, { filename: req.file.originalname });
+    logKpiCalculation(kpiResult, auditContext);
 
     const payload: UploadSuccessResponse = {
       status: 'accepted',
-      filename: req.file.originalname,
-      sizeBytes: req.file.size,
-      mimeType: req.file.mimetype,
+      filename: file.originalname,
+      sizeBytes: file.size,
+      mimeType: file.mimetype,
       cleaning: {
         headers: cleaning.headers,
         totalDataRows: cleaning.totalDataRows,
@@ -128,6 +163,11 @@ uploadRouter.post('/upload', (req: Request, res: Response, next: NextFunction) =
       },
       kpis: kpiResult,
     };
+
+    // Remember only successful runs: a byte-identical re-submit is then served
+    // from cache, while a corrected re-upload (different bytes -> different key)
+    // still reprocesses normally.
+    rememberRun(recentRuns, idempotencyKey, run, payload);
 
     sendValidated(res, UploadSuccessResponseSchema, 200, payload);
   });
@@ -146,10 +186,7 @@ export function uploadErrorHandler(err: unknown, _req: Request, res: Response, _
     message,
   };
 
-  logUploadOutcome('failure', {
-    errorClass: payload.errorClass,
-    message: payload.message,
-  });
+  logUploadError({ errorClass: payload.errorClass, message: payload.message });
 
   sendValidated(res, UploadErrorResponseSchema, isValidationError ? 400 : 500, payload);
 }
