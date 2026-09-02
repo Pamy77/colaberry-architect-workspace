@@ -3,12 +3,12 @@
   "project": "Small Business KPI Copilot",
   "totals": {
     "stories_total": 15,
-    "stories_verified": 4,
+    "stories_verified": 5,
     "stories_submitted": 0,
-    "stories_in_progress": 11,
+    "stories_in_progress": 10,
     "stories_not_started": 0,
     "criteria_total": 47,
-    "criteria_passed": 12,
+    "criteria_passed": 15,
     "points_awarded": 106
   },
   "stories": [
@@ -258,35 +258,73 @@
       "criteria": [
         {
           "text": "Given significant KPI changes, when they occur, then the system sends an alert via email.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Given no significant changes, when I check alerts, then no new alerts are sent.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Trust: The system logs all alerts sent and their contents.",
-          "passed": false
+          "passed": true
         }
       ],
-      "files_touched": [],
-      "tests_added": [],
-      "notes": null,
-      "updated_at": null,
+      "files_touched": [
+        "backend/src/services/alertDetectionService.ts",
+        "backend/src/services/alertDetectionService.test.ts",
+        "backend/src/services/alertTransport.ts",
+        "backend/src/services/emailTransport.ts",
+        "backend/src/services/slackTransport.ts",
+        "backend/src/services/notificationService.ts",
+        "backend/src/services/notificationService.test.ts",
+        "backend/src/services/latestKpiStore.ts",
+        "backend/src/routes/alertsContract.ts",
+        "backend/src/routes/alertsRoute.ts",
+        "backend/src/routes/alertsRoute.test.ts",
+        "backend/src/app.ts",
+        "directives/05-alerts.md"
+      ],
+      "tests_added": [
+        "alertDetectionService.test.ts: flags a change at or above the threshold",
+        "alertDetectionService.test.ts: ignores a change below the threshold",
+        "alertDetectionService.test.ts: change exactly at the threshold is significant",
+        "alertDetectionService.test.ts: flags a decrease and describes it as a fall",
+        "alertDetectionService.test.ts: no alert when a KPI is unchanged",
+        "alertDetectionService.test.ts: no alert on a brand-new KPI (no baseline)",
+        "alertDetectionService.test.ts: no alert on a KPI that disappeared",
+        "alertDetectionService.test.ts: any move away from a zero baseline is significant (null percent)",
+        "alertDetectionService.test.ts: carries the weaker evidence level of the two readings",
+        "alertDetectionService.test.ts: one alert per significant KPI, in current-list order",
+        "alertDetectionService.test.ts: defaults the threshold to ALERT_THRESHOLD_PCT (15)",
+        "alertDetectionService.test.ts: reads ALERT_THRESHOLD_PCT from the environment at load time",
+        "notificationService.test.ts: buildAlertContent summarises a single change",
+        "notificationService.test.ts: buildAlertContent flags low-confidence changes",
+        "notificationService.test.ts: deriveAlertKey is stable regardless of order, varies by generatedAt",
+        "notificationService.test.ts: empty alert list -> no send, no alert_sent line",
+        "notificationService.test.ts: delivers to every channel and logs alert_sent with the body",
+        "notificationService.test.ts: does not send the same alert twice (idempotent)",
+        "notificationService.test.ts: retries a failing channel, records the failure, does not remember it",
+        "notificationService.test.ts: partial success counts as sent and then dedupes",
+        "notificationService.test.ts: uses the real dry-run email + slack transports by default",
+        "alertsRoute.test.ts: no_data when nothing has been calculated",
+        "alertsRoute.test.ts: no_baseline after only one calculation",
+        "alertsRoute.test.ts: no_changes when nothing crossed the threshold",
+        "alertsRoute.test.ts: sends an alert when a KPI moves significantly, logs its contents",
+        "alertsRoute.test.ts: idempotent - a second run reports already_sent",
+        "alertsRoute.test.ts: 502 send_failed when every channel fails"
+      ],
+      "notes": "detectKpiAlerts is pure (percent-change vs ALERT_THRESHOLD_PCT, default 15, mirrors the verify_kpi_movement MCP tool). notificationService.sendKpiAlert dedupes on sha256(generatedAt + sorted key:prev->cur pairs), fans out to email + slack transports via processingAudit.runStep (timeout + capped retry), writes an alert_sent audit line carrying the full body. Transports are DRY-RUN ONLY (no Mandrill/Slack creds locally); real delivery is env-gated and unverified - a harden follow-up. POST /api/alerts/run: no_data / no_baseline / no_changes / already_sent / sent / 502 send_failed. latestKpiStore now keeps previous + latest. Not wired into uploadRoute; call the endpoint after an upload or from a scheduler. See directives/05-alerts.md.",
+      "updated_at": "2026-09-02",
       "verification": {
-        "state": "in_progress",
-        "criteria_passed": 0,
+        "state": "verified",
+        "criteria_passed": 3,
         "criteria_total": 3,
-        "verified_at": null,
+        "verified_at": "2026-09-02T22:20:00Z",
         "commit_sha": null,
         "commit_url": null,
         "commit_at": null,
         "points_awarded": null,
-        "outstanding": [
-          "Given significant KPI changes, when they occur, then the system sends an alert via email.",
-          "Given no significant changes, when I check alerts, then no new alerts are sent.",
-          "Trust: The system logs all alerts sent and their contents."
-        ]
+        "outstanding": []
       }
     },
     {
