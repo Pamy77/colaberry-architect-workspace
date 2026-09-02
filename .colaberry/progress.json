@@ -3,12 +3,12 @@
   "project": "Small Business KPI Copilot",
   "totals": {
     "stories_total": 15,
-    "stories_verified": 2,
+    "stories_verified": 3,
     "stories_submitted": 0,
-    "stories_in_progress": 13,
+    "stories_in_progress": 12,
     "stories_not_started": 0,
     "criteria_total": 47,
-    "criteria_passed": 6,
+    "criteria_passed": 9,
     "points_awarded": 106
   },
   "stories": [
