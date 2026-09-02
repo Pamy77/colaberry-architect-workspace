@@ -4,6 +4,7 @@ import multer, { FileFilterCallback } from 'multer';
 import { sendValidated } from '../lib/sendValidated';
 import { cleanFile, ParseError } from '../services/dataCleaningService';
 import { calculateKpis, logKpiCalculation } from '../services/kpiService';
+import { setLatest } from '../services/latestKpiStore';
 import {
   checkIdempotency,
   deriveIdempotencyKey,
@@ -110,6 +111,13 @@ uploadRouter.post('/upload', (req: Request, res: Response, next: NextFunction) =
     const idempotencyKey = deriveIdempotencyKey(file.buffer, file.originalname);
     const decision = checkIdempotency(run, recentRuns, idempotencyKey);
     if (decision.duplicate && decision.priorResult) {
+      // A re-submit is still "the KPIs the user is looking at now" — make it the
+      // dashboard's latest so GET /api/kpis reflects this upload.
+      setLatest({
+        result: decision.priorResult.kpis,
+        filename: decision.priorResult.filename,
+        generatedAt: new Date().toISOString(),
+      });
       sendValidated(res, UploadSuccessResponseSchema, 200, decision.priorResult);
       return;
     }
@@ -148,6 +156,13 @@ uploadRouter.post('/upload', (req: Request, res: Response, next: NextFunction) =
       return;
     }
     logKpiCalculation(kpiResult, auditContext);
+
+    // Make this calculation the dashboard's latest (GET /api/kpis, STORY-003).
+    setLatest({
+      result: kpiResult,
+      filename: file.originalname,
+      generatedAt: new Date().toISOString(),
+    });
 
     const payload: UploadSuccessResponse = {
       status: 'accepted',

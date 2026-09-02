@@ -3,12 +3,12 @@
   "project": "Small Business KPI Copilot",
   "totals": {
     "stories_total": 15,
-    "stories_verified": 3,
+    "stories_verified": 4,
     "stories_submitted": 0,
-    "stories_in_progress": 12,
+    "stories_in_progress": 11,
     "stories_not_started": 0,
     "criteria_total": 47,
-    "criteria_passed": 9,
+    "criteria_passed": 12,
     "points_awarded": 106
   },
   "stories": [
@@ -186,35 +186,69 @@
       "criteria": [
         {
           "text": "Given calculated KPIs, when I access the dashboard, then they are displayed clearly.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Given no KPIs, when I access the dashboard, then it shows a message indicating no data.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Trust: The system logs dashboard access and interactions.",
-          "passed": false
+          "passed": true
         }
       ],
-      "files_touched": [],
-      "tests_added": [],
-      "notes": null,
-      "updated_at": null,
+      "files_touched": [
+        "backend/src/services/latestKpiStore.ts",
+        "backend/src/routes/dashboardRoute.ts",
+        "backend/src/routes/dashboardContract.ts",
+        "backend/src/routes/dashboardRoute.test.ts",
+        "backend/src/app.ts",
+        "backend/src/routes/uploadRoute.ts",
+        "frontend/package.json",
+        "frontend/vite.config.ts",
+        "frontend/vitest.config.ts",
+        "frontend/tsconfig.json",
+        "frontend/index.html",
+        "frontend/src/main.tsx",
+        "frontend/src/App.tsx",
+        "frontend/src/types.ts",
+        "frontend/src/services/kpiApi.ts",
+        "frontend/src/components/KpiCard.tsx",
+        "frontend/src/pages/Dashboard.tsx",
+        "frontend/src/pages/Dashboard.test.tsx",
+        "frontend/src/services/kpiApi.test.ts",
+        "frontend/src/styles/index.css",
+        "frontend/src/test/setup.ts",
+        "directives/04-dashboard.md"
+      ],
+      "tests_added": [
+        "dashboardRoute.test.ts: GET /api/kpis returns no_data before anything is calculated",
+        "dashboardRoute.test.ts: GET /api/kpis returns the latest KPIs after an upload",
+        "dashboardRoute.test.ts: GET /api/kpis logs a dashboard_access audit line with a correlation id",
+        "dashboardRoute.test.ts: GET /api/kpis returns a typed 500 and logs a failure when the store read throws",
+        "Dashboard.test.tsx: renders KPI cards clearly when KPIs are available",
+        "Dashboard.test.tsx: lists clarification questions when the data is incomplete",
+        "Dashboard.test.tsx: shows a no-data message when there are no KPIs",
+        "Dashboard.test.tsx: shows an error state on load failure and retries on button click",
+        "kpiApi.test.ts: returns the parsed body on a 200",
+        "kpiApi.test.ts: retries a 5xx and succeeds on a later attempt",
+        "kpiApi.test.ts: does not retry a 4xx (terminal)",
+        "kpiApi.test.ts: gives up after the retry cap with a friendly message",
+        "kpiApi.test.ts: aborts a slow request after timeoutMs",
+        "kpiApi.test.ts: treats an unrecognised body as terminal"
+      ],
+      "notes": "GET /api/kpis serves the most recent KpiCalculation from an in-memory holder (latestKpiStore.ts) populated by the upload flow; no persistence yet (STORY-014). Returns {status:'no_data'} before any calc, the latest KPIs + filename + generatedAt after, typed 500 DashboardUnavailable if the store read throws. Every request emits a dashboard_access audit line with a correlation id (X-Correlation-ID). Frontend is Vite + React + TypeScript (not CRA - EOL); Dashboard.tsx has loading / error (message + Try again) / no-data / loaded states; kpiApi.ts fetchKpis() has an AbortController timeout + capped backoff retries (4xx/unrecognised terminal, timeout/network/5xx retried). uploadRoute.ts edited (approved) to feed the store. See directives/04-dashboard.md.",
+      "updated_at": "2026-09-02",
       "verification": {
-        "state": "in_progress",
-        "criteria_passed": 0,
+        "state": "verified",
+        "criteria_passed": 3,
         "criteria_total": 3,
-        "verified_at": null,
+        "verified_at": "2026-09-02T21:30:00Z",
         "commit_sha": null,
         "commit_url": null,
         "commit_at": null,
         "points_awarded": null,
-        "outstanding": [
-          "Given calculated KPIs, when I access the dashboard, then they are displayed clearly.",
-          "Given no KPIs, when I access the dashboard, then it shows a message indicating no data.",
-          "Trust: The system logs dashboard access and interactions."
-        ]
+        "outstanding": []
       }
     },
     {

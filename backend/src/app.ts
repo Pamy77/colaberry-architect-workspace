@@ -1,5 +1,6 @@
 import express, { Express } from 'express';
 import { uploadErrorHandler, uploadRouter } from './routes/uploadRoute';
+import { dashboardRouter } from './routes/dashboardRoute';
 
 export function createApp(): Express {
   const app = express();
@@ -9,6 +10,7 @@ export function createApp(): Express {
   });
 
   app.use('/api', uploadRouter);
+  app.use('/api', dashboardRouter);
   app.use(uploadErrorHandler);
 
   return app;
