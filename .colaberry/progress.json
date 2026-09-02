@@ -490,35 +490,57 @@
       "criteria": [
         {
           "text": "Given data is processed, when a processing error occurs, then the system should retry the operation without duplicating data.",
-          "passed": False
+          "passed": true
         },
         {
           "text": "Given data processing is complete, when an audit is conducted, then all processing steps should be logged with timestamps.",
-          "passed": False
+          "passed": true
         },
         {
           "text": "Trust: Every data processing step must be logged with a unique identifier and status.",
-          "passed": False
+          "passed": true
         }
       ],
-      "files_touched": [],
-      "tests_added": [],
-      "notes": null,
-      "updated_at": null,
+      "files_touched": [
+        "backend/src/services/processingAudit.ts",
+        "backend/src/services/processingAudit.test.ts",
+        "backend/src/routes/uploadRoute.ts",
+        "backend/src/routes/uploadRoute.test.ts",
+        "directives/03-trust-spine.md"
+      ],
+      "tests_added": [
+        "processingAudit.test.ts: newRun mints a unique runId and adopts an explicit one",
+        "processingAudit.test.ts: runStep happy path - fn once, started + succeeded, one step_id",
+        "processingAudit.test.ts: runStep gives each step a unique step_id and step_seq",
+        "processingAudit.test.ts: runStep retries a transient failure, fn called once per attempt",
+        "processingAudit.test.ts: runStep retry cap reached -> gave_up rethrows original error",
+        "processingAudit.test.ts: runStep does not retry an error named as terminal",
+        "processingAudit.test.ts: runStep per-attempt timeout fails the step (TimeoutError)",
+        "processingAudit.test.ts: deriveIdempotencyKey stable for same bytes+filename, changes when either changes",
+        "processingAudit.test.ts: RecentRuns remember/get roundtrip, unknown key -> undefined",
+        "processingAudit.test.ts: RecentRuns evicts the oldest entry when full (bounded memory)",
+        "processingAudit.test.ts: RecentRuns re-remembering a key refreshes it",
+        "processingAudit.test.ts: RecentRuns clamps a non-positive capacity to 1",
+        "processingAudit.test.ts: checkIdempotency miss -> started + succeeded, not duplicate",
+        "processingAudit.test.ts: checkIdempotency hit -> duplicate line + prior run result",
+        "processingAudit.test.ts: checkIdempotency end-to-end, second run with same key is a duplicate",
+        "processingAudit.test.ts: buildStepEntry is pure, no console I/O",
+        "uploadRoute.test.ts: every processing step logged with a unique id, status and timestamp (STORY-011)",
+        "uploadRoute.test.ts: retries a transient processing error without duplicating data",
+        "uploadRoute.test.ts: byte-identical re-upload is not reprocessed, answered from the previous run"
+      ],
+      "notes": "Trust spine in backend/src/services/processingAudit.ts (standalone, mirrors dataCleaningService/kpiService), wired into POST /api/upload. One crypto.randomUUID() correlation id per run, returned as X-Correlation-ID. Four steps through runStep/checkIdempotency (receive_upload -> idempotency_check -> clean_data -> calculate_kpis), each emitting a processing_step audit line with a unique step_id (<runId>-s<seq>), explicit status (started -> failed/retrying -> succeeded/gave_up/duplicate), timestamp and duration_ms. runStep does capped exponential-backoff retry that only re-invokes the pure step fn, so a transient error retries without duplicating data; ParseError is terminal (fast 400). deriveIdempotencyKey (sha256 of filename+bytes) + bounded FIFO RecentRuns cache (env PROCESSING_DEDUP_CACHE_SIZE, default 256): a byte-identical re-upload is answered from the previous run and logged status: duplicate with the original run id, no reprocessing. tsc --noEmit clean; backend suite 50/50 (was 39). Deferred by design (directive 03): durable/cross-process audit + dedupe storage (STORY-014), KPI-change verification (STORY-012). Known gap: two byte-identical uploads racing within the same tick both miss the cache and both process (sequential re-submits are covered).",
+      "updated_at": "2026-09-02",
       "verification": {
-        "state": "in_progress",
-        "criteria_passed": 0,
+        "state": "verified",
+        "criteria_passed": 3,
         "criteria_total": 3,
-        "verified_at": null,
+        "verified_at": "2026-09-02T19:50:50Z",
         "commit_sha": "dcdd59be8efe8d520de1b7b373f4a900a68ae93b",
         "commit_url": "https://github.com/Pamy77/colaberry-architect-workspace/commit/dcdd59be8efe8d520de1b7b373f4a900a68ae93b",
         "commit_at": "2026-09-02T19:50:50Z",
         "points_awarded": null,
-        "outstanding": [
-          "Given data is processed, when a processing error occurs, then the system should retry the operation without duplicating data.",
-          "Given data processing is complete, when an audit is conducted, then all processing steps should be logged with timestamps.",
-          "Trust: Every data processing step must be logged with a unique identifier and status."
-        ]
+        "outstanding": []
       }
     },
     {
