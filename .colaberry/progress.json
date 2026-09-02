@@ -3,13 +3,13 @@
   "project": "Small Business KPI Copilot",
   "totals": {
     "stories_total": 15,
-    "stories_verified": 1,
+    "stories_verified": 2,
     "stories_submitted": 0,
-    "stories_in_progress": 14,
+    "stories_in_progress": 13,
     "stories_not_started": 0,
     "criteria_total": 47,
-    "criteria_passed": 3,
-    "points_awarded": 53
+    "criteria_passed": 6,
+    "points_awarded": 106
   },
   "stories": [
     {
@@ -54,8 +54,8 @@
         "outstanding": [
           "Given the Command Center, when it is opened, then every tab is reachable and every card drills down one level.",
           "Given sample mode, when any tab is shown, then the sample data is visibly labelled as sample.",
-          "Given the data files, when any tab renders, then its content comes from .colaberry/plan.json and .colaberry/progress.json read at runtime rather than from hard-coded values.",
-          "Given .colaberry/manifest.json, when any tab is shown, then it displays how old the data is and warns when that age exceeds a week.",
+          "Given the Command Center, when any tab renders, then .colaberry/plan.json and .colaberry/progress.json are both committed in this repo and every tab reads its content from them at runtime rather than from hard-coded values.",
+          "Given the Command Center, when any tab is shown, then .colaberry/manifest.json is committed in this repo and every tab shows how old that data is and warns when the age exceeds a week.",
           "Trust — no tab shows a number, a connection or a result the project has not actually produced."
         ]
       }
@@ -171,11 +171,11 @@
         "state": "verified",
         "criteria_passed": 3,
         "criteria_total": 3,
-        "verified_at": "2026-08-31T21:40:00Z",
-        "commit_sha": null,
-        "commit_url": null,
-        "commit_at": null,
-        "points_awarded": null,
+        "verified_at": "2026-08-31T21:47:54.707Z",
+        "commit_sha": "aa16f5ee2d9898ec8b7c07018312914837a8346b",
+        "commit_url": "https://github.com/Pamy77/colaberry-architect-workspace/commit/aa16f5ee2d9898ec8b7c07018312914837a8346b",
+        "commit_at": "2026-08-31T21:47:36Z",
+        "points_awarded": 53,
         "outstanding": []
       }
     },
@@ -510,9 +510,9 @@
         "criteria_passed": 0,
         "criteria_total": 3,
         "verified_at": null,
-        "commit_sha": null,
-        "commit_url": null,
-        "commit_at": null,
+        "commit_sha": "dcdd59be8efe8d520de1b7b373f4a900a68ae93b",
+        "commit_url": "https://github.com/Pamy77/colaberry-architect-workspace/commit/dcdd59be8efe8d520de1b7b373f4a900a68ae93b",
+        "commit_at": "2026-09-02T19:50:50Z",
         "points_awarded": null,
         "outstanding": [
           "Given data is processed, when a processing error occurs, then the system should retry the operation without duplicating data.",

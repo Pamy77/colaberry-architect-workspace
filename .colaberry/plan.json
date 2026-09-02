@@ -197,8 +197,8 @@
         "STORY-002",
         "STORY-011"
       ],
-      "starts_on": null,
-      "ends_on": null,
+      "starts_on": "2026-08-23",
+      "ends_on": "2026-08-28",
       "is_demo_target": false
     },
     {
@@ -213,9 +213,9 @@
         "STORY-004",
         "STORY-012"
       ],
-      "starts_on": null,
-      "ends_on": null,
-      "is_demo_target": false
+      "starts_on": "2026-08-31",
+      "ends_on": "2026-09-06",
+      "is_demo_target": true
     },
     {
       "key": "r2",
@@ -228,8 +228,8 @@
         "STORY-005",
         "STORY-006"
       ],
-      "starts_on": null,
-      "ends_on": null,
+      "starts_on": "2026-09-10",
+      "ends_on": "2026-09-14",
       "is_demo_target": false
     },
     {
@@ -244,8 +244,8 @@
         "STORY-008",
         "STORY-013"
       ],
-      "starts_on": null,
-      "ends_on": null,
+      "starts_on": "2026-09-17",
+      "ends_on": "2026-09-23",
       "is_demo_target": false
     },
     {
@@ -260,8 +260,8 @@
         "STORY-010",
         "STORY-014"
       ],
-      "starts_on": null,
-      "ends_on": null,
+      "starts_on": "2026-09-25",
+      "ends_on": "2026-10-01",
       "is_demo_target": false
     }
   ],
@@ -288,8 +288,8 @@
         "Upload interrupted"
       ],
       "task_guidance": "Implement file upload endpoint and data cleaning service.",
-      "due_on": null,
-      "due_baseline_on": null
+      "due_on": "2026-08-23",
+      "due_baseline_on": "2026-08-23"
     },
     {
       "id": "STORY-002",
@@ -312,8 +312,8 @@
         "Missing data"
       ],
       "task_guidance": "Develop KPI calculation module and integrate with data cleaning output.",
-      "due_on": null,
-      "due_baseline_on": null
+      "due_on": "2026-08-26",
+      "due_baseline_on": "2026-08-26"
     },
     {
       "id": "STORY-003",
@@ -338,8 +338,8 @@
         "User interface errors"
       ],
       "task_guidance": "Design and implement a user-friendly dashboard interface.",
-      "due_on": null,
-      "due_baseline_on": null
+      "due_on": "2026-08-31",
+      "due_baseline_on": "2026-08-31"
     },
     {
       "id": "STORY-004",
@@ -364,8 +364,8 @@
         "Alert content incorrect"
       ],
       "task_guidance": "Set up email and Slack notification services.",
-      "due_on": null,
-      "due_baseline_on": null
+      "due_on": "2026-09-03",
+      "due_baseline_on": "2026-09-03"
     },
     {
       "id": "STORY-005",
@@ -393,8 +393,8 @@
         "Data integrity check failure"
       ],
       "task_guidance": "Implement data synchronization using the Google Sheets API and QuickBooks API. Ensure data integrity checks are in place.",
-      "due_on": null,
-      "due_baseline_on": null
+      "due_on": "2026-09-10",
+      "due_baseline_on": "2026-09-10"
     },
     {
       "id": "STORY-006",
@@ -419,8 +419,8 @@
         "Usage limit exceeded"
       ],
       "task_guidance": "Implement subscription management module with payment processing.",
-      "due_on": null,
-      "due_baseline_on": null
+      "due_on": "2026-09-14",
+      "due_baseline_on": "2026-09-14"
     },
     {
       "id": "STORY-007",
@@ -446,8 +446,8 @@
         "User confusion"
       ],
       "task_guidance": "Enhance KPI calculation module to include uncertainty handling and evidence levels.",
-      "due_on": null,
-      "due_baseline_on": null
+      "due_on": "2026-09-17",
+      "due_baseline_on": "2026-09-17"
     },
     {
       "id": "STORY-008",
@@ -472,8 +472,8 @@
         "Data omission"
       ],
       "task_guidance": "Develop report generation module to summarize business actions.",
-      "due_on": null,
-      "due_baseline_on": null
+      "due_on": "2026-09-20",
+      "due_baseline_on": "2026-09-20"
     },
     {
       "id": "STORY-009",
@@ -498,8 +498,8 @@
         "User interface issues"
       ],
       "task_guidance": "Implement feedback collection mechanism linked to insights.",
-      "due_on": null,
-      "due_baseline_on": null
+      "due_on": "2026-09-25",
+      "due_baseline_on": "2026-09-25"
     },
     {
       "id": "STORY-010",
@@ -525,8 +525,8 @@
         "Navigation errors"
       ],
       "task_guidance": "Redesign user interface to enhance simplicity and usability.",
-      "due_on": null,
-      "due_baseline_on": null
+      "due_on": "2026-09-28",
+      "due_baseline_on": "2026-09-28"
     },
     {
       "id": "STORY-011",
@@ -551,8 +551,8 @@
         "Incorrect error handling"
       ],
       "task_guidance": "Implement logging for each data processing step, ensuring idempotency and auditability.",
-      "due_on": null,
-      "due_baseline_on": null
+      "due_on": "2026-08-28",
+      "due_baseline_on": "2026-08-28"
     },
     {
       "id": "STORY-012",
@@ -579,8 +579,8 @@
         "Logging failure"
       ],
       "task_guidance": "Implement a verification mechanism for KPI changes before triggering alerts.",
-      "due_on": null,
-      "due_baseline_on": null
+      "due_on": "2026-09-06",
+      "due_baseline_on": "2026-09-06"
     },
     {
       "id": "STORY-013",
@@ -607,8 +607,8 @@
         "Logging failure"
       ],
       "task_guidance": "Design report templates and implement report generation logic using available data sources.",
-      "due_on": null,
-      "due_baseline_on": null
+      "due_on": "2026-09-23",
+      "due_baseline_on": "2026-09-23"
     },
     {
       "id": "STORY-014",
@@ -635,19 +635,62 @@
         "User interface confusion"
       ],
       "task_guidance": "Implement a version control mechanism for insights allowing undo operations.",
-      "due_on": null,
-      "due_baseline_on": null
+      "due_on": "2026-10-01",
+      "due_baseline_on": "2026-10-01"
     }
   ],
   "agents": [],
   "project": {
     "name": "Small Business KPI Copilot",
     "descriptor": "An application that automates data processing from Excel/CSV uploads to generate actionable business insights and alerts for small business owners.",
-    "repo_url": null,
+    "repo_url": "https://github.com/Pamy77/colaberry-architect-workspace",
     "plan_version": 1,
     "plan_sha256": "b651ac6b982a26137a10aa54dac0e63b1e600d6a48713116cd1a8f29a1f00ba3"
   },
-  "schedule": null,
+  "schedule": {
+    "build_start": "2026-08-20",
+    "build_end": "2026-10-01",
+    "demo_day": "2026-10-08",
+    "build_weeks": 6,
+    "demo_release_key": "r1",
+    "roadmap_release_keys": [
+      "r2",
+      "r3",
+      "r4"
+    ],
+    "prep": [
+      {
+        "key": "PREP-1",
+        "title": "Write the demo narrative: the problem, the one moment, the guardrail",
+        "due_on": "2026-10-02"
+      },
+      {
+        "key": "PREP-2",
+        "title": "Record a first run-through and watch it back",
+        "due_on": "2026-10-03"
+      },
+      {
+        "key": "PREP-3",
+        "title": "Build the slides — what it does, who for, the number it moves",
+        "due_on": "2026-10-05"
+      },
+      {
+        "key": "PREP-4",
+        "title": "Rehearse with one other person and take their notes",
+        "due_on": "2026-10-06"
+      },
+      {
+        "key": "PREP-5",
+        "title": "Record the final demo video",
+        "due_on": "2026-10-07"
+      },
+      {
+        "key": "PREP-6",
+        "title": "Present at Demo Day",
+        "due_on": "2026-10-08"
+      }
+    ]
+  },
   "derived": {
     "measures": [],
     "guardrails": [
