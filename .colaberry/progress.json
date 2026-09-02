@@ -490,15 +490,15 @@
       "criteria": [
         {
           "text": "Given data is processed, when a processing error occurs, then the system should retry the operation without duplicating data.",
-          "passed": True
+          "passed": False
         },
         {
           "text": "Given data processing is complete, when an audit is conducted, then all processing steps should be logged with timestamps.",
-          "passed": True
+          "passed": False
         },
         {
           "text": "Trust: Every data processing step must be logged with a unique identifier and status.",
-          "passed": True
+          "passed": False
         }
       ],
       "files_touched": [],
