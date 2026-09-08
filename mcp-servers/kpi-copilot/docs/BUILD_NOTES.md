@@ -1050,3 +1050,19 @@ reference; this log is the "what happened when" trail.
   customer. Fix later: branch 429 -> `error: "rate_limited"` + surface
   `retry_after`, and/or one bounded backoff retry.
 - **No git commit:** `mcp-servers/` is untracked.
+
+### 2026-09-08 — first commit of the server + week-06 recording — session CC-20260908-a7k4
+
+- `mcp-servers/kpi-copilot/` committed for the first time (commit `f933288` on
+  `master`, pushed). From here on it IS tracked — earlier "mcp-servers/ is
+  untracked" caveats no longer apply.
+- Root `.gitignore` gained `__pycache__/`, `*.py[cod]`, `*.bak`,
+  `mcp-servers/*/scratchpad/`. `.venv/` was already self-ignored by uv.
+  `client_demo.py` deliberately left out of the commit — stale (calls
+  `search_kpis` / `kpi://catalog`, removed).
+- `README.md` gained a "Watch it run" section: `<video>` (raw.githubusercontent
+  URL) + a relative download link, one sentence describing the verify→Slack task.
+- Recording: `C:\Users\pamym\Videos\Captures\MCP Inspector ... 2026-09-08 18-45-12.mp4`
+  (65.5 MB) copied to `artifacts/week-06/kpi-copilot-slack-alert-walkthrough.mp4`
+  and committed as-is. GitHub warned (>50 MB) but accepted it (<100 MB hard
+  limit). Not compressed — no ffmpeg on the machine; fine for a course artifact.
