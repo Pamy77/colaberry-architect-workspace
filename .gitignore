@@ -13,6 +13,12 @@ tmp/
 dist/
 build/
 
+# Python bytecode / backups / scratch (MCP servers live under mcp-servers/)
+__pycache__/
+*.py[cod]
+*.bak
+mcp-servers/*/scratchpad/
+
 # OS / editor noise
 .DS_Store
 Thumbs.db

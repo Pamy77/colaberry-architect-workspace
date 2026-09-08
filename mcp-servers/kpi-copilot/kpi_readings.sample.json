@@ -1,0 +1,29 @@
+{
+  "_comment": "SAMPLE DATA - not real business figures. Seeded from server_full.py.bak's KPI_READINGS and expanded across 2026-05..2026-08 for the Small Business KPI Copilot. KPI names, units, targets and directions mirror this project's workflow-plan.md structured output. Replace with real cleaned KPI output once STORY-002 (KPI calculation) lands.",
+  "readings": [
+    {"kpi_name": "Monthly Revenue", "period": "2026-05", "current_value": 45000, "target_value": 50000, "previous_value": 44000, "unit": "$", "direction": "higher_is_better"},
+    {"kpi_name": "Monthly Revenue", "period": "2026-06", "current_value": 47000, "target_value": 50000, "previous_value": 45000, "unit": "$", "direction": "higher_is_better"},
+    {"kpi_name": "Monthly Revenue", "period": "2026-07", "current_value": 52000, "target_value": 50000, "previous_value": 47000, "unit": "$", "direction": "higher_is_better"},
+    {"kpi_name": "Monthly Revenue", "period": "2026-08", "current_value": 51000, "target_value": 50000, "previous_value": 52000, "unit": "$", "direction": "higher_is_better"},
+
+    {"kpi_name": "Customer Churn Rate", "period": "2026-05", "current_value": 5.8, "target_value": 5.0, "previous_value": 5.5, "unit": "%", "direction": "lower_is_better"},
+    {"kpi_name": "Customer Churn Rate", "period": "2026-06", "current_value": 6.2, "target_value": 5.0, "previous_value": 5.8, "unit": "%", "direction": "lower_is_better"},
+    {"kpi_name": "Customer Churn Rate", "period": "2026-07", "current_value": 8.5, "target_value": 5.0, "previous_value": 6.2, "unit": "%", "direction": "lower_is_better"},
+    {"kpi_name": "Customer Churn Rate", "period": "2026-08", "current_value": 7.9, "target_value": 5.0, "previous_value": 8.5, "unit": "%", "direction": "lower_is_better"},
+
+    {"kpi_name": "Customer Satisfaction Score", "period": "2026-06", "current_value": 83, "target_value": 85, "previous_value": 84, "unit": "pts", "direction": "higher_is_better"},
+    {"kpi_name": "Customer Satisfaction Score", "period": "2026-07", "current_value": 82, "target_value": 85, "previous_value": 83, "unit": "pts", "direction": "higher_is_better"},
+
+    {"kpi_name": "Cash on Hand", "period": "2026-06", "current_value": 40, "target_value": 45, "previous_value": 38, "unit": "days", "direction": "higher_is_better"},
+    {"kpi_name": "Cash on Hand", "period": "2026-07", "current_value": 46, "target_value": 45, "previous_value": 40, "unit": "days", "direction": "higher_is_better"},
+
+    {"kpi_name": "Gross Margin Percent", "period": "2026-06", "current_value": 41.5, "target_value": 40.0, "previous_value": 42.0, "unit": "%", "direction": "higher_is_better"},
+    {"kpi_name": "Gross Margin Percent", "period": "2026-07", "current_value": 38.2, "target_value": 40.0, "previous_value": 41.5, "unit": "%", "direction": "higher_is_better"},
+
+    {"kpi_name": "Overdue Invoices", "period": "2026-06", "current_value": 4200, "target_value": 3000, "previous_value": 3800, "unit": "$", "direction": "lower_is_better"},
+    {"kpi_name": "Overdue Invoices", "period": "2026-07", "current_value": 9600, "target_value": 3000, "previous_value": 4200, "unit": "$", "direction": "lower_is_better"},
+
+    {"kpi_name": "New Feature Adoption Rate", "period": "2026-07", "current_value": 12, "target_value": null, "previous_value": null, "unit": "%", "direction": "higher_is_better"},
+    {"kpi_name": "New Feature Adoption Rate", "period": "2026-08", "current_value": 15, "target_value": null, "previous_value": 12, "unit": "%", "direction": "higher_is_better"}
+  ]
+}
