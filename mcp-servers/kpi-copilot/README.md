@@ -2,12 +2,11 @@
 
 ## Watch it run
 
-<video src="https://raw.githubusercontent.com/Pamy77/colaberry-architect-workspace/master/artifacts/week-06/kpi-copilot-slack-alert-walkthrough.mp4" controls muted></video>
-
-The server handling a real task end to end: `verify_kpi_movement` confirms a
+**▶ [Watch the walkthrough](../../artifacts/week-06/kpi-copilot-slack-alert-walkthrough.mp4)** — the
+server handling a real task end to end: `verify_kpi_movement` confirms a
 month-over-month churn spike is past the alert threshold (REQ-013), then
-`send_kpi_alert_to_slack` posts it to the team channel (REQ-005). If it does not
-play inline, [download it](../../artifacts/week-06/kpi-copilot-slack-alert-walkthrough.mp4).
+`send_kpi_alert_to_slack` posts it to the team channel (REQ-005). Opens in
+GitHub's video player.
 
 An MCP server for the Small Business KPI Copilot. It works over a bundled sample of
 KPI readings (revenue, churn, CSAT, cash on hand, gross margin, feature adoption,
