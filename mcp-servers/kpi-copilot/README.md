@@ -3,10 +3,9 @@
 ## Watch it run
 
 **▶ [Watch the walkthrough](../../artifacts/week-06/kpi-copilot-slack-alert-walkthrough.mp4)** — the
-server handling a real task end to end: `verify_kpi_movement` confirms a
-month-over-month churn spike is past the alert threshold (REQ-013), then
-`send_kpi_alert_to_slack` posts it to the team channel (REQ-005). Opens in
-GitHub's video player.
+server running in the MCP Inspector, returning the `kpi_health_check` prompt: the
+instruction that drives a single-KPI health assessment (arguments `kpi` and
+`period`) over the stored readings. Opens in GitHub's video player.
 
 An MCP server for the Small Business KPI Copilot. It works over a bundled sample of
 KPI readings (revenue, churn, CSAT, cash on hand, gross margin, feature adoption,
