@@ -2,7 +2,7 @@
 
 ## Watch it run
 
-**▶ [Watch the walkthrough](../../artifacts/week-06/kpi-copilot-slack-alert-walkthrough.mp4)** — the
+**▶ [Watch the walkthrough](../../artifacts/week-06/kpi-copilot-prompt-walkthrough.mp4)** — the
 server running in the MCP Inspector, returning the `kpi_health_check` prompt: the
 instruction that drives a single-KPI health assessment (arguments `kpi` and
 `period`) over the stored readings. Opens in GitHub's video player.
