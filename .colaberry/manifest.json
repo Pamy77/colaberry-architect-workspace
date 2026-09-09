@@ -5,6 +5,50 @@
   "correlation_id": "0bf4cd11-c9cb-47d1-84fc-84d9dc68a671",
   "files": [
     {
+      "path": ".colaberry/plan.json",
+      "sha256": "6bde1856bebd88bbb973a86991ba89a026d0ab86251be4589a1e5e2aed7b4a49"
+    },
+    {
+      "path": ".colaberry/profile.json",
+      "sha256": "783f5fe17e4f736d8317920f33be379c205540d4dc707a52aa0d569ef5f52da4"
+    },
+    {
+      "path": ".colaberry/progress.json",
+      "sha256": "343f47c1968c2e8cedcb3714763cd15cc8f14b382afa82b3c65b11cf431e0f66"
+    },
+    {
+      "path": "CLAUDE.md",
+      "sha256": "70136d8bcd6d12eb484bffa8f6feb45a992cd863e7d364c4db3958d65b250f6b"
+    },
+    {
+      "path": "artifacts/INDEX.md",
+      "sha256": "d704955f8eb9fa323e8b44feef8956903216a984c5590424a4e1dca4bb170553"
+    },
+    {
+      "path": "artifacts/week-01/claude-standards.md",
+      "sha256": "b81720157991d769279c1699f26fa929401c985dd4f1f7e88eb03fcb916d67b2"
+    },
+    {
+      "path": "artifacts/week-02/skill-template.md",
+      "sha256": "ac41627b2f8d32716b94caef2de0749dce6318fa38fe40d9e11776527853aeed"
+    },
+    {
+      "path": "artifacts/week-03/workflow-plan.md",
+      "sha256": "294402f8f2e9c879d70e358038c44c57cf0c76f2a29a4d16f673bd46dcb27a24"
+    },
+    {
+      "path": "artifacts/week-04/v1-0-0.md",
+      "sha256": "0a8a3553843069cf1bbc6b8b65ca3702f44ff9b091d5c148a35ba309db462169"
+    },
+    {
+      "path": "artifacts/week-06/file-location.pdf",
+      "sha256": "f2a44ec107dc5b6cc292e056dea7a60b6d021092c863c9bae5b313aa40a536d9"
+    },
+    {
+      "path": "docs/DATA_CONTRACT.md",
+      "sha256": "d56e89edcfe36725945d961cf3479b646507d1fa855bba0dcdfff3f8f8a658b0"
+    },
+    {
       "path": "docs/REQUIREMENTS.md",
       "sha256": "9187ac1dd602d0a7e7064024efda4313ac58e37acca9a20aefbd541007774b7e"
     },
@@ -17,12 +61,8 @@
       "sha256": "06fd4aac793c3e46a6f91945f084065d9575fb94d92c29cababc12b2eb63a589"
     },
     {
-      "path": "docs/DATA_CONTRACT.md",
-      "sha256": "d56e89edcfe36725945d961cf3479b646507d1fa855bba0dcdfff3f8f8a658b0"
-    },
-    {
-      "path": "CLAUDE.md",
-      "sha256": "70136d8bcd6d12eb484bffa8f6feb45a992cd863e7d364c4db3958d65b250f6b"
+      "path": "docs/stories/STORY-000.md",
+      "sha256": "d09408956305107be9aee39b354299107c4e66061552ee89532d7127e3522803"
     },
     {
       "path": "docs/stories/STORY-001.md",
@@ -79,22 +119,6 @@
     {
       "path": "docs/stories/STORY-014.md",
       "sha256": "93c33ea55577db587c949c738cc0fb82a402b208f1c9a70d79a190a8b06ca2f3"
-    },
-    {
-      "path": "docs/stories/STORY-000.md",
-      "sha256": "d09408956305107be9aee39b354299107c4e66061552ee89532d7127e3522803"
-    },
-    {
-      "path": ".colaberry/plan.json",
-      "sha256": "6bde1856bebd88bbb973a86991ba89a026d0ab86251be4589a1e5e2aed7b4a49"
-    },
-    {
-      "path": ".colaberry/progress.json",
-      "sha256": "343f47c1968c2e8cedcb3714763cd15cc8f14b382afa82b3c65b11cf431e0f66"
-    },
-    {
-      "path": ".colaberry/profile.json",
-      "sha256": "783f5fe17e4f736d8317920f33be379c205540d4dc707a52aa0d569ef5f52da4"
     }
   ]
 }
