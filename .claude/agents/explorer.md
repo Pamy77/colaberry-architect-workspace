@@ -63,7 +63,21 @@ routes) affected, tests that exist or are missing.
 A numbered list. Each: the file, the specific place, and what the change must
 accomplish there. No code — just the instruction.
 
-### Open questions
+### Obstacles
 
-Ambiguities the caller must resolve, and anything you could not determine from the
-files available to you. "None" if none.
+Anything you could not cleanly do. Numbered; `None` if there were none. Each:
+
+- **Type:** `BLOCKER` (a file or path you needed was missing or unreadable) ·
+  `GOVERNANCE` (the change this points to would cross a `CLAUDE.md` escalation
+  boundary — flag it, do not design around it) · `ASSUMPTION` (you resolved an
+  ambiguous question by picking a reading and continuing) · `STALL` (the search
+  went in circles and you stopped) · `RISK` (not blocking, but something in the
+  code looks fragile or surprising)
+- **Where:** the file, path, or part of the question involved
+- **What happened:** the concrete detail — the missing file, the ambiguous
+  wording quoted, the conflicting evidence
+- **How I responded:** searched elsewhere / assumed X / flagged and moved on /
+  stopped
+- **Impact:** which part of the findings above is affected or left uncertain
+- **To clear it:** the specific thing the caller must decide, provide, or point
+  you at

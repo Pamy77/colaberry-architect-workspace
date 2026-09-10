@@ -59,10 +59,26 @@ Each gate from the method above: `PASS` / `FAIL` / `N/A`, with evidence.
 
 ### Failures
 
-For every `FAIL` above: what is wrong, where (`path:line`), and the exact command
-+ output that shows it. "None" if the verdict is a clean PASS.
+Defects in the work under review. For every `FAIL` above: what is wrong, where
+(`path:line`), and the exact command + output that shows it. "None" if the verdict
+is a clean PASS. (Defects in the reviewed work go here; things that blocked *you*
+from verifying go under Obstacles.)
 
-### Not verified
+### Obstacles
 
-Anything in scope you could not check, and why (no access, no fixture, out of
-reach). "None" if coverage was complete.
+Anything that stopped you from verifying cleanly. Numbered; `None` if there were
+none. Each:
+
+- **Type:** `BLOCKER` (could not run a check — missing fixture, no access, absent
+  command) · `GOVERNANCE` (verifying would require crossing a `CLAUDE.md`
+  boundary) · `ASSUMPTION` (you read an acceptance criterion a particular way
+  because its wording was unclear) · `STALL` (a check hung or flaked repeatedly
+  and you stopped) · `RISK` (a check passed but you have low confidence in it —
+  shallow assertion, flaky suite, coverage gap)
+- **Where:** the criterion, gate, command, or file
+- **What happened:** the concrete detail — the command that would not run, the
+  missing fixture, the criterion wording quoted
+- **How I responded:** skipped that check / assumed X / stopped after N attempts
+- **Impact:** which criterion or gate is left unproven as a result
+- **To clear it:** the specific thing the caller must provide or do so it can be
+  verified
