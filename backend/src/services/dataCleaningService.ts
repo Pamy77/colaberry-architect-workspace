@@ -74,12 +74,28 @@ function parseToRows(buffer: Buffer, filename: string): Promise<string[][]> {
   return Promise.reject(new ParseError(`Unsupported file extension "${extension}" for cleaning.`));
 }
 
+// Disambiguates duplicate (post-trim) header names — including repeated blanks —
+// so each column gets a distinct key. Without this, two columns sharing a header
+// (e.g. two "Amount" columns) collide in the per-row `data` map and the earlier
+// column's values are silently overwritten and lost from both cleanedRows and
+// flaggedRows before a row is even classified.
+function dedupeHeaders(rawHeaders: string[]): string[] {
+  const seenCounts = new Map<string, number>();
+  return rawHeaders.map((h) => {
+    const trimmed = (h || '').trim();
+    const count = seenCounts.get(trimmed) ?? 0;
+    seenCounts.set(trimmed, count + 1);
+    if (count === 0) return trimmed;
+    return `${trimmed} (${count + 1})`;
+  });
+}
+
 function cleanRows(rows: string[][], maxDataRows: number): CleaningResult {
   if (rows.length === 0) {
     throw new ParseError('File contains no rows.');
   }
 
-  const headers = rows[0].map((h) => (h || '').trim());
+  const headers = dedupeHeaders(rows[0]);
   const dataRows = rows.slice(1);
 
   if (dataRows.length > maxDataRows) {

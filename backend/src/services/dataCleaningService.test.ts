@@ -80,4 +80,39 @@ describe('cleanFile', () => {
     const result = await cleanFile(csv, 'sales.csv', 3);
     expect(result.totalDataRows).toBe(3);
   });
+
+  it('does not collapse the non-duplicate-header happy path (no regression)', async () => {
+    const csv = Buffer.from('date,revenue,notes\n2026-01-01,1000,ok\n');
+    const result = await cleanFile(csv, 'sales.csv');
+    expect(result.headers).toEqual(['date', 'revenue', 'notes']);
+    expect(result.cleanedRows[0].data).toEqual({ date: '2026-01-01', revenue: '1000', notes: 'ok' });
+  });
+
+  it('disambiguates duplicate header names so both columns survive under distinct keys', async () => {
+    const csv = Buffer.from('date,Amount,Amount\n2026-01-01,100,200\n');
+    const result = await cleanFile(csv, 'sales.csv');
+    expect(result.headers).toEqual(['date', 'Amount', 'Amount (2)']);
+    expect(result.cleanedRows).toHaveLength(1);
+    expect(result.cleanedRows[0].data).toEqual({
+      date: '2026-01-01',
+      Amount: '100',
+      'Amount (2)': '200',
+    });
+  });
+
+  it('disambiguates duplicate blank headers so both columns survive under distinct keys', async () => {
+    const csv = Buffer.from('date,,\n2026-01-01,foo,bar\n');
+    const result = await cleanFile(csv, 'sales.csv');
+    expect(result.headers).toHaveLength(3);
+    expect(new Set(result.headers).size).toBe(3);
+    expect(result.headers[0]).toBe('date');
+    expect(result.headers[1]).toBe('');
+    expect(result.headers[2]).toBe(' (2)');
+    expect(result.cleanedRows).toHaveLength(1);
+    expect(result.cleanedRows[0].data).toEqual({
+      date: '2026-01-01',
+      '': 'foo',
+      ' (2)': 'bar',
+    });
+  });
 });
