@@ -14,6 +14,14 @@ import { AlertContent, AlertTransport, logAlertDelivery } from './alertTransport
  * key read from env and redacted in every log line. Until that lands, a
  * key being present is logged loudly and still falls back to dry-run, so no
  * untested HTTP path ships and nothing is silently dropped.
+ *
+ * HUMAN-APPROVAL HOLD (REQ-013 / STORY-012): the gate now exists — see
+ * `backend/src/routes/alertsRoute.ts` + `backend/src/services/pendingAlertStore.ts`.
+ * `POST /api/alerts/run` will not call `sendKpiAlert` (and therefore never
+ * calls `.send()` here) until `POST /api/alerts/:id/approve` is invoked,
+ * unless `ALERT_REQUIRE_APPROVAL=false`. That gate must stay in front of any
+ * real Mandrill adapter — do not ship real credentials/HTTP here while it is
+ * bypassable by anything other than that explicit env flag.
  */
 
 function dryRunEmailTransport(mode: string): AlertTransport {

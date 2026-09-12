@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import {
   buildAlertContent,
   deriveAlertKey,
@@ -5,7 +7,11 @@ import {
   _clearSentAlerts,
 } from './notificationService';
 import type { AlertTransport } from './alertTransport';
+import { detectKpiAlerts } from './alertDetectionService';
 import type { KpiAlert } from './alertDetectionService';
+import { cleanFile } from './dataCleaningService';
+import { calculateKpis } from './kpiService';
+import type { Kpi } from './kpiService';
 
 function alert(overrides: Partial<KpiAlert> & Pick<KpiAlert, 'key'>): KpiAlert {
   return {
@@ -205,5 +211,52 @@ describe('sendKpiAlert', () => {
     const deliveries = auditLines(logSpy).filter((l) => l.event === 'alert_delivery');
     expect(deliveries).toHaveLength(2);
     expect(deliveries.every((d) => d.outcome === 'simulated')).toBe(true);
+  });
+});
+
+// Walking-skeleton stage 3 (alert-insight-agent): proves the new stage-2
+// sales-trend KPI (business.revenue.trend.momAvg) genuinely flows end to
+// end -- real stage-2 output (via cleanFile + calculateKpis against the
+// stage-1 fixture, not hand-typed) through detection into drafted alert
+// content, including the medium-confidence caveat buildAlertContent already
+// appends for a non-'high' evidenceLevel.
+describe('business.revenue.trend.momAvg end-to-end (stage 2 -> stage 3 handoff)', () => {
+  it('detects the real trend KPI crossing the threshold and drafts content with the medium-confidence caveat', async () => {
+    const fixturePath = path.join(__dirname, '__fixtures__', 'sampleSales.csv');
+    const buffer = fs.readFileSync(fixturePath);
+    const cleaned = await cleanFile(buffer, 'sampleSales.csv');
+    const calc = calculateKpis(cleaned);
+
+    const currentTrend = calc.kpis.find((k) => k.key === 'business.revenue.trend.momAvg');
+    expect(currentTrend).toBeDefined(); // sanity: stage 2 really produced the KPI
+    expect(currentTrend?.value).toBeCloseTo(0.2349, 4);
+    expect(currentTrend?.evidenceLevel).toBe('medium');
+
+    // Previous calculation's trend reading: a materially smaller
+    // month-over-month average (0.05, high confidence) so the move to 0.2349
+    // clears ALERT_THRESHOLD_PCT (default 15%) by a wide margin (~370%).
+    const previousTrend: Kpi = {
+      key: 'business.revenue.trend.momAvg',
+      label: currentTrend!.label,
+      value: 0.05,
+      unit: 'ratio',
+      evidenceLevel: 'high',
+      evidenceNote: 'Prior calculation baseline for this test.',
+      basis: { column: 'revenue', rowsConsidered: 8, rowsUsed: 8, coverage: 1 },
+    };
+
+    const alerts = detectKpiAlerts([previousTrend], calc.kpis);
+    const trendAlert = alerts.find((a) => a.key === 'business.revenue.trend.momAvg');
+
+    expect(trendAlert).toBeDefined();
+    expect(trendAlert?.direction).toBe('increase');
+    expect(trendAlert?.previousValue).toBe(0.05);
+    expect(trendAlert?.currentValue).toBeCloseTo(0.2349, 4);
+    // weaker of (previous 'high', current 'medium') = 'medium'
+    expect(trendAlert?.evidenceLevel).toBe('medium');
+
+    const content = buildAlertContent([trendAlert!]);
+    expect(content.bodyText).toContain('Sales trend (avg. month-over-month revenue change)');
+    expect(content.bodyText).toContain('(medium confidence)');
   });
 });

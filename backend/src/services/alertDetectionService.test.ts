@@ -1,4 +1,9 @@
+import fs from 'fs';
+import path from 'path';
 import { detectKpiAlerts, ALERT_THRESHOLD_PCT } from './alertDetectionService';
+import type { CleaningResult } from './dataCleaningService';
+import { cleanFile } from './dataCleaningService';
+import { calculateKpis } from './kpiService';
 import type { Kpi } from './kpiService';
 
 function kpi(overrides: Partial<Kpi> & Pick<Kpi, 'key' | 'value'>): Kpi {
@@ -126,6 +131,70 @@ describe('detectKpiAlerts', () => {
         else process.env.ALERT_THRESHOLD_PCT = prevEnv;
       }
     });
+  });
+});
+
+// Walking-skeleton stage 3 (alert-insight-agent): proves the negative case for
+// the stage-2 sales-trend KPI (business.revenue.trend.momAvg) — a real
+// stage-2 value that either doesn't cross ALERT_THRESHOLD_PCT, or simply isn't
+// present because stage 2 asked for clarification instead of fabricating one,
+// must never produce an alert for that key. Complements the positive
+// end-to-end case in notificationService.test.ts.
+describe('business.revenue.trend.momAvg — no fabricated alert on sub-threshold or missing data', () => {
+  it('does not alert when the real trend KPI moves but stays under the threshold', async () => {
+    const fixturePath = path.join(__dirname, '__fixtures__', 'sampleSales.csv');
+    const buffer = fs.readFileSync(fixturePath);
+    const cleaned = await cleanFile(buffer, 'sampleSales.csv');
+    const calc = calculateKpis(cleaned);
+
+    const currentTrend = calc.kpis.find((k) => k.key === 'business.revenue.trend.momAvg');
+    expect(currentTrend).toBeDefined();
+    expect(currentTrend?.value).toBeCloseTo(0.2349, 4); // real stage-2 output, not hand-typed
+
+    // Previous reading close enough that the move is ~6.8%, under the default
+    // 15% threshold -- this is a real move, just not a significant one.
+    const previousTrend = kpi({
+      key: 'business.revenue.trend.momAvg',
+      label: currentTrend!.label,
+      value: 0.22,
+      unit: 'ratio',
+    });
+
+    const alerts = detectKpiAlerts([previousTrend], calc.kpis);
+    expect(alerts.find((a) => a.key === 'business.revenue.trend.momAvg')).toBeUndefined();
+  });
+
+  it('does not fabricate an alert when the current side has no trend KPI (insufficient_trend_data instead)', () => {
+    // Only one month of data -- stage 2's own documented behavior is to
+    // request clarification (`insufficient_trend_data`) rather than emit a
+    // KPI. There is nothing here to verify or alert on.
+    const singleMonthResult: CleaningResult = {
+      headers: ['date', 'revenue'],
+      cleanedRows: [
+        { rowNumber: 2, data: { date: '2026-01-05', revenue: '1000' } },
+        { rowNumber: 3, data: { date: '2026-01-12', revenue: '1200' } },
+      ],
+      flaggedRows: [],
+      totalDataRows: 2,
+    };
+
+    const calc = calculateKpis(singleMonthResult);
+    expect(calc.status).toBe('needs_clarification');
+    expect(calc.clarificationsNeeded.some((c) => c.code === 'insufficient_trend_data')).toBe(true);
+    expect(calc.kpis.find((k) => k.key === 'business.revenue.trend.momAvg')).toBeUndefined();
+
+    const previousTrend = kpi({
+      key: 'business.revenue.trend.momAvg',
+      label: 'Sales trend (avg. month-over-month revenue change)',
+      value: 0.1,
+      unit: 'ratio',
+    });
+
+    // current (calc.kpis) has no entry for the trend key at all -> the
+    // detector's own "no baseline / no counterpart" rule means nothing is
+    // emitted for it, regardless of how large `previousTrend`'s value is.
+    const alerts = detectKpiAlerts([previousTrend], calc.kpis);
+    expect(alerts.find((a) => a.key === 'business.revenue.trend.momAvg')).toBeUndefined();
   });
 });
 

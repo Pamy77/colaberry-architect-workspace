@@ -17,6 +17,17 @@ import { createSlackTransport } from './slackTransport';
  * Idempotent: the same set of changes for the same calculation is sent once.
  * A run where *every* channel failed is not remembered, so a later retry can
  * try again.
+ *
+ * HUMAN-APPROVAL HOLD (REQ-013 / STORY-012): `sendKpiAlert` itself has no
+ * approval gate — it always sends the moment it's called, which is exactly
+ * what the harden pass needs it to keep doing once real credentials land. The
+ * gate lives one layer up, in `backend/src/routes/alertsRoute.ts` +
+ * `backend/src/services/pendingAlertStore.ts`: when `ALERT_REQUIRE_APPROVAL`
+ * is on (default), `POST /api/alerts/run` drafts the content and stores it as
+ * `pending` instead of calling this function; a human must call
+ * `POST /api/alerts/:id/approve` before `sendKpiAlert` is ever invoked. Set
+ * `ALERT_REQUIRE_APPROVAL=false` to skip the hold once the gate has been
+ * proven out in production — see `directives/05-alerts.md`.
  */
 
 export interface AlertChannelResult {
@@ -91,7 +102,12 @@ export function deriveAlertKey(alerts: KpiAlert[], generatedAt: string): string 
   return createHash('sha256').update(generatedAt).update('|').update(canonical).digest('hex');
 }
 
-function logAlertEvent(level: 'info' | 'warn' | 'error', fields: Record<string, unknown>): void {
+/**
+ * Structured log-line builder shared with the approval-gate routes
+ * (`alertsRoute.ts`), so `pending_approval` / `alert_approved` / `alert_rejected`
+ * lines carry the exact same JSON shape as `alert_check` / `alert_sent`.
+ */
+export function logAlertEvent(level: 'info' | 'warn' | 'error', fields: Record<string, unknown>): void {
   console.log(
     JSON.stringify({ timestamp: new Date().toISOString(), level, service: 'backend', ...fields }),
   );

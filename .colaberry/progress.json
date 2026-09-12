@@ -626,35 +626,58 @@
       "criteria": [
         {
           "text": "Given a significant change in KPI, when the system detects the change, then it should verify the change before sending an alert.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Given a false positive KPI change, when verification fails, then no alert should be sent.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Trust: Every KPI change verification must be logged with the result and timestamp.",
-          "passed": false
+          "passed": true
         }
       ],
-      "files_touched": [],
-      "tests_added": [],
-      "notes": null,
-      "updated_at": null,
+      "files_touched": [
+        "backend/src/services/alertDetectionService.test.ts",
+        "backend/src/services/notificationService.test.ts",
+        "backend/src/services/notificationService.ts",
+        "backend/src/services/emailTransport.ts",
+        "backend/src/services/slackTransport.ts",
+        "backend/src/services/pendingAlertStore.ts",
+        "backend/src/services/pendingAlertStore.test.ts",
+        "backend/src/routes/alertsRoute.ts",
+        "backend/src/routes/alertsRoute.test.ts",
+        "backend/src/routes/alertsContract.ts",
+        "directives/05-alerts.md"
+      ],
+      "tests_added": [
+        "alertDetectionService.test.ts: 'does not alert when the real trend KPI moves but stays under the threshold'",
+        "alertDetectionService.test.ts: 'does not fabricate an alert when the current side has no trend KPI (insufficient_trend_data instead)'",
+        "notificationService.test.ts: 'detects the real trend KPI crossing the threshold and drafts content with the medium-confidence caveat'",
+        "pendingAlertStore.test.ts: 16 tests -- upsertPending create + get-or-create idempotency + independent ids, markApproved (success/failure outcomes, no-op on repeat, refuses to flip a rejected entry, unknown id), markRejected (idempotent, refuses to flip an approved entry, unknown id), listPending (sorted, empty), getPendingById (unknown id), clearPendingAlerts",
+        "alertsRoute.test.ts: 'drafts a pending_approval alert when a KPI moves significantly, and does not send'",
+        "alertsRoute.test.ts: 'is idempotent: a second run for the same change finds the existing pending entry instead of drafting a duplicate'",
+        "alertsRoute.test.ts: 'happy path: pending_approval -> GET pending lists it -> approve -> sent, and it drops off the pending list'",
+        "alertsRoute.test.ts: 'reject path: pending -> reject -> drops off pending list -> approving after reject is refused as a 4xx, never sends'",
+        "alertsRoute.test.ts: 'double-approve idempotency: approving twice does not send twice and returns the same result'",
+        "alertsRoute.test.ts: 'unknown id: approve and reject both return a clear 404, not a silent no-op'",
+        "alertsRoute.test.ts: 'send target unreachable: approve returns 502 send_failed when every channel fails, and a second approve reuses that outcome without re-sending'",
+        "alertsRoute.test.ts: 'GET /api/alerts/pending returns an empty list when nothing is pending'",
+        "alertsRoute.test.ts: 'sends immediately, dedupes a replay as already_sent, and reports 502 on total delivery failure -- exactly like before the gate existed' (ALERT_REQUIRE_APPROVAL=false)",
+        "alertsRoute.test.ts: 'returns 502 send_failed when every channel fails (email delivery failure), gate off'"
+      ],
+      "notes": "Built the human-approval hold flagged as a gap in the prior walking-skeleton pass. New backend/src/services/pendingAlertStore.ts holds drafted alerts keyed by the same deriveAlertKey id notificationService already computes (idempotent by construction: a replayed detection finds the existing entry via upsertPending instead of drafting a duplicate). POST /api/alerts/run is gated behind ALERT_REQUIRE_APPROVAL (env, default true; only the literal string 'false' turns it off, same load-time-read pattern as ALERT_THRESHOLD_PCT) -- gate on: significant changes are drafted and held, response status 'pending_approval' carries the id + drafted content, sendKpiAlert is never called from run. New POST /api/alerts/:id/approve calls the real sendKpiAlert and caches the SendAlertResult on the entry so a second approve call reuses it verbatim instead of re-sending (route-level idempotency backstop in front of notificationService's own sentAlertKeys dedup). New POST /api/alerts/:id/reject marks an entry rejected (idempotent; refuses to flip an approved entry) -- this is the 'false positive -> verification fails -> no alert sent' path; approving an already-rejected id, or rejecting an already-approved one, is refused with an explicit 4xx (409), never a silent no-op; unknown id on either endpoint is 404. New GET /api/alerts/pending lists what's waiting, newest first. Gate off (ALERT_REQUIRE_APPROVAL=false) reproduces the exact pre-STORY-012 immediate-send behavior -- verified both by a dedicated regression test (using jest.isolateModules since the env is read at module load) and by re-reading the diff: sendKpiAlert, alertDetectionService, and the run route's gate-off branch are byte-identical in logic to before. Structured pending_approval/alert_approved/alert_rejected log lines (via the now-exported notificationService.logAlertEvent, same JSON shape as alert_check/alert_sent) satisfy the 'logged with result and timestamp' criterion. Replaced the SAFETY GATE TODO comments in notificationService.ts/emailTransport.ts/slackTransport.ts with pointers to where the gate now actually lives; replaced directives/05-alerts.md's 'Known gap' section with a 'Human-approval hold' section describing the built mechanism, including its one documented limitation (a failed approved-send has no retry action short of a fresh detection cycle). Interpretation logged as an explicit assumption: 'verify the change before sending' is satisfied here by a mandatory human-confirmation gate, not by an automated statistical/data-artifact anomaly detector -- REQ-013's narrative ('verify ... before sending alerts') is read as being satisfied by requiring a person to confirm before any real send, consistent with the explicit task framing of this pass ('wire the send behind a human-approval hold ... until REQ-013's verification step is proven out in production'); an automated glitch-detection algorithm distinct from human judgment was not built and remains a documented gap if ever needed. Did not touch kpiService.ts, dataCleaningService.ts, or their fixtures/tests (scope lock honored). Did not implement a real Mandrill/Slack HTTP transport (explicitly out of scope). tsc --noEmit clean; full backend suite 10 suites / 115 passing (was 92) -- net +23 tests (16 pendingAlertStore.test.ts, +7 net in alertsRoute.test.ts: 3 old tests rewritten for the gated behavior, 10 new). Live end-to-end against the built server (upload two CSVs with a +60% revenue swing, curl the real endpoints): POST /alerts/run -> pending_approval with 5 drafted alerts and full content; GET /alerts/pending listed it; POST /alerts/:id/approve -> sent with both channels 'sent', entry dropped off the pending list; a second approve on the same id returned the identical cached 'sent' result (no re-send); POST /alerts/does-not-exist/approve -> 404 NotFound; server log confirmed pending_approval, alert_approved (reused:false), and alert_approved (reused:true) lines, each with timestamp/outcome/correlation_id/alertId.",
+      "updated_at": "2026-09-11",
       "verification": {
-        "state": "in_progress",
-        "criteria_passed": 0,
+        "state": "verified",
+        "criteria_passed": 3,
         "criteria_total": 3,
-        "verified_at": null,
+        "verified_at": "2026-09-12T04:41:00Z",
         "commit_sha": null,
         "commit_url": null,
         "commit_at": null,
         "points_awarded": null,
-        "outstanding": [
-          "Given a significant change in KPI, when the system detects the change, then it should verify the change before sending an alert.",
-          "Given a false positive KPI change, when verification fails, then no alert should be sent.",
-          "Trust: Every KPI change verification must be logged with the result and timestamp."
-        ]
+        "outstanding": []
       }
     },
     {

@@ -7,6 +7,11 @@ import { AlertContent, AlertTransport, logAlertDelivery } from './alertTransport
  * when `SLACK_WEBHOOK_URL` is set, POST the alert text to that incoming-webhook
  * URL with an explicit timeout + capped retry. Until then a configured URL is
  * logged and delivery still falls back to dry-run.
+ *
+ * HUMAN-APPROVAL HOLD (REQ-013 / STORY-012): same gate as `emailTransport.ts`
+ * — see `backend/src/routes/alertsRoute.ts` + `pendingAlertStore.ts`. A real
+ * webhook call wired in here still only fires after a human approves via
+ * `POST /api/alerts/:id/approve` (or `ALERT_REQUIRE_APPROVAL=false`).
  */
 
 function dryRunSlackTransport(mode: string): AlertTransport {
