@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import ExcelJS from 'exceljs';
 import { cleanFile, ParseError } from './dataCleaningService';
 
@@ -114,5 +116,27 @@ describe('cleanFile', () => {
       '': 'foo',
       ' (2)': 'bar',
     });
+  });
+
+  it('parses the sample sales fixture into the shape the KPI calculator expects', async () => {
+    // This fixture (backend/src/services/__fixtures__/sampleSales.csv) is the
+    // walking-skeleton handoff point to the downstream KPI calculator agent:
+    // 3 months of `date`/`revenue` rows plus one row with a missing revenue
+    // cell, so the consumer has to handle a mix of cleanedRows and
+    // flaggedRows rather than assuming every row is clean.
+    const fixturePath = path.join(__dirname, '__fixtures__', 'sampleSales.csv');
+    const buffer = fs.readFileSync(fixturePath);
+    const result = await cleanFile(buffer, 'sampleSales.csv');
+
+    expect(result.headers).toEqual(['date', 'revenue']);
+    expect(result.totalDataRows).toBe(12);
+    expect(result.cleanedRows).toHaveLength(11);
+    expect(result.flaggedRows).toHaveLength(1);
+
+    expect(result.flaggedRows[0].data.date).toBe('2026-02-16');
+    expect(result.flaggedRows[0].reason).toMatch(/empty/i);
+
+    const cleanedMonths = new Set(result.cleanedRows.map((row) => row.data.date.slice(0, 7)));
+    expect(cleanedMonths).toEqual(new Set(['2026-01', '2026-02', '2026-03']));
   });
 });
