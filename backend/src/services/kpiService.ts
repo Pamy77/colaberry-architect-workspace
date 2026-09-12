@@ -41,7 +41,13 @@ export type ClarificationCode =
   | 'no_numeric_columns'
   | 'low_coverage'
   | 'inconsistent_column'
-  | 'missing_kpi_inputs';
+  | 'missing_kpi_inputs'
+  // A trend needs at least two data points to compare; "low_coverage" is about
+  // a column's missing cells and doesn't fit "there simply aren't enough
+  // distinct periods yet" (e.g. a single month of history, or no
+  // calendar-adjacent months at all). REQ-008 / STORY-007: don't force-fit an
+  // existing code onto a genuinely different failure mode.
+  | 'insufficient_trend_data';
 
 export interface Clarification {
   code: ClarificationCode;
@@ -76,6 +82,13 @@ function envRatio(name: string, fallback: number): number {
 
 const REVENUE_SYNONYMS = ['revenue', 'sales', 'income', 'turnover'];
 const EXPENSE_SYNONYMS = ['expenses', 'expense', 'costs', 'cost', 'spend', 'expenditure'];
+const DATE_SYNONYMS = ['date', 'month', 'period'];
+
+// Matches a leading ISO-ish "YYYY-MM" prefix (e.g. "2026-02-16" or "2026-02").
+// Anything else (blank, "Feb 2026", Excel serial dates, etc.) is treated as
+// unparseable rather than guessed at — a documented limitation, same spirit
+// as parseNumeric's currency-format limitation above.
+const MONTH_PREFIX_RE = /^(\d{4})-(\d{2})/;
 
 interface ColumnStats {
   header: string;
@@ -293,6 +306,169 @@ function addDerivedBusinessKpis(
   });
 }
 
+function findHeaderBySynonym(headers: string[], synonyms: string[]): string | undefined {
+  return headers.find((header) => {
+    const normalized = normalizeHeader(header);
+    return synonyms.some((syn) => normalized === syn || normalized.includes(syn));
+  });
+}
+
+function monthKeyOf(rawDate: string): string | null {
+  const match = MONTH_PREFIX_RE.exec(rawDate.trim());
+  return match ? `${match[1]}-${match[2]}` : null;
+}
+
+function nextMonthKey(monthKey: string): string {
+  const [year, month] = monthKey.split('-').map(Number);
+  const nextMonth = month === 12 ? 1 : month + 1;
+  const nextYear = month === 12 ? year + 1 : year;
+  return `${nextYear}-${String(nextMonth).padStart(2, '0')}`;
+}
+
+// Bounded defensively: months come from real observed dates in one dataset,
+// but a corrupt/absurd date (e.g. year 9999) must not spin this into an
+// effectively unbounded loop.
+function monthRange(min: string, max: string): string[] {
+  const months: string[] = [];
+  let cur = min;
+  for (let i = 0; i < 10_000 && cur <= max; i++) {
+    months.push(cur);
+    cur = nextMonthKey(cur);
+  }
+  return months;
+}
+
+interface MonthlyRevenueRow {
+  month: string;
+  revenue: number | null;
+}
+
+function collectMonthlyRevenueRows(
+  result: CleaningResult,
+  dateHeader: string,
+  revenueHeader: string,
+): MonthlyRevenueRow[] {
+  const allRows = [...result.cleanedRows, ...result.flaggedRows];
+  const rows: MonthlyRevenueRow[] = [];
+  for (const row of allRows) {
+    const month = monthKeyOf(row.data[dateHeader] ?? '');
+    if (month === null) continue; // unparseable/blank date -> can't attribute to a month
+    const rawRevenue = (row.data[revenueHeader] ?? '').trim();
+    rows.push({ month, revenue: rawRevenue === '' ? null : parseNumeric(rawRevenue) });
+  }
+  return rows;
+}
+
+// Monthly sales-trend KPI (REQ-003 / REQ-009 / STORY-007): average
+// month-over-month % change in the revenue column, grouped by the year-month
+// prefix of the date column. Confidence is the weakest of two independent
+// signals per this file's existing evidenceFor()/weakest() pattern:
+//   1. coverage of the revenue column itself (missing/non-numeric cells), and
+//   2. whether the calendar range has a gap (a month with zero rows at all).
+// A month whose only rows are flagged/blank contributes no total (never a
+// fabricated 0), and a transition is only computed between calendar-adjacent
+// months, so it never overstates confidence by papering over gaps.
+function addSalesTrendKpi(
+  kpis: Kpi[],
+  clarifications: Clarification[],
+  result: CleaningResult,
+  revenueCol: ColumnStats,
+  consideredRows: number,
+): void {
+  // No date-like column, or one whose values don't parse to a recognizable
+  // YYYY-MM-DD date, means this dataset simply isn't shaped for a trend —
+  // mirrors this file's existing "no revenue column -> nothing to compute,
+  // no clarification" precedent (see the caller) rather than treating every
+  // date-less dataset as an error. The genuinely reportable case — a real
+  // date column with too little history to compare — is handled below.
+  const dateHeader = findHeaderBySynonym(result.headers, DATE_SYNONYMS);
+  if (!dateHeader) return;
+
+  const monthlyRows = collectMonthlyRevenueRows(result, dateHeader, revenueCol.header);
+  const monthsPresent = Array.from(new Set(monthlyRows.map((r) => r.month))).sort();
+
+  if (monthsPresent.length === 0) return;
+
+  const totalsByMonth = new Map<string, number>();
+  const numericCountByMonth = new Map<string, number>();
+  for (const { month, revenue } of monthlyRows) {
+    if (revenue === null) continue;
+    totalsByMonth.set(month, (totalsByMonth.get(month) ?? 0) + revenue);
+    numericCountByMonth.set(month, (numericCountByMonth.get(month) ?? 0) + 1);
+  }
+  const usableMonths = monthsPresent.filter((m) => totalsByMonth.has(m));
+
+  if (usableMonths.length < 2) {
+    clarifications.push({
+      code: 'insufficient_trend_data',
+      question: `Only ${usableMonths.length} month(s) of usable "${revenueCol.header}" data were found (need at least 2) so a month-over-month sales trend can't be calculated.`,
+      column: revenueCol.header,
+    });
+    return;
+  }
+
+  const changes: number[] = [];
+  for (let i = 1; i < usableMonths.length; i++) {
+    const prevMonth = usableMonths[i - 1];
+    const curMonth = usableMonths[i];
+    if (nextMonthKey(prevMonth) !== curMonth) continue; // gap -> don't fabricate a MoM figure across it
+    const prevTotal = totalsByMonth.get(prevMonth) as number;
+    const curTotal = totalsByMonth.get(curMonth) as number;
+    if (prevTotal === 0) continue; // divide-by-zero guard
+    changes.push((curTotal - prevTotal) / prevTotal);
+  }
+
+  if (changes.length === 0) {
+    clarifications.push({
+      code: 'insufficient_trend_data',
+      question: `"${revenueCol.header}" data doesn't contain two calendar-adjacent months with a nonzero total, so a month-over-month sales trend can't be calculated.`,
+      column: revenueCol.header,
+    });
+    return;
+  }
+
+  const avgChange = roundTo(sum(changes) / changes.length);
+
+  const rowsUsed = usableMonths.reduce((acc, m) => acc + (numericCountByMonth.get(m) ?? 0), 0);
+  const coverage = consideredRows === 0 ? 0 : rowsUsed / consideredRows;
+  const revenueEvidence = evidenceFor(coverage);
+
+  const expectedMonths = monthRange(monthsPresent[0], monthsPresent[monthsPresent.length - 1]);
+  const monthCoverage = expectedMonths.length === 0 ? 0 : monthsPresent.length / expectedMonths.length;
+  const monthEvidence = evidenceFor(monthCoverage);
+
+  const evidenceLevel = weakest(revenueEvidence, monthEvidence);
+  const missingMonths = expectedMonths.filter((m) => !monthsPresent.includes(m));
+
+  const evidenceNote =
+    `Average month-over-month change across ${changes.length} calendar-adjacent transition(s) spanning ` +
+    `${usableMonths.join(', ')} (${pct(coverage)} of rows had a usable "${revenueCol.header}" value)` +
+    (missingMonths.length > 0 ? `; missing month(s) in range: ${missingMonths.join(', ')}.` : '.');
+
+  kpis.push({
+    key: 'business.revenue.trend.momAvg',
+    label: 'Sales trend (avg. month-over-month revenue change)',
+    value: avgChange,
+    unit: 'ratio',
+    evidenceLevel,
+    evidenceNote,
+    basis: {
+      column: revenueCol.header,
+      rowsConsidered: consideredRows,
+      rowsUsed,
+      coverage: roundTo(coverage),
+    },
+  });
+
+  if (missingMonths.length > 0) {
+    clarifications.push({
+      code: 'low_coverage',
+      question: `The date range spans ${monthsPresent[0]} to ${monthsPresent[monthsPresent.length - 1]} but has no rows for: ${missingMonths.join(', ')}. Confirm there's genuinely no data for those months.`,
+      column: dateHeader,
+    });
+  }
+}
+
 export function calculateKpis(result: CleaningResult): KpiCalculation {
   const cleanedRowCount = result.cleanedRows.length;
   const flaggedRowCount = result.flaggedRows.length;
@@ -347,6 +523,15 @@ export function calculateKpis(result: CleaningResult): KpiCalculation {
     addColumnKpis(kpis, clarifications, col, consideredRows);
   }
   addDerivedBusinessKpis(kpis, clarifications, numericStats, consideredRows);
+
+  // Trend needs its own revenue-column lookup (not just the total/margin
+  // path above) because it also needs the raw per-row date cells, which
+  // addDerivedBusinessKpis doesn't carry. Mirrors that function's existing
+  // "no revenue column -> nothing to do, no clarification" behavior.
+  const revenueColForTrend = findBySynonym(numericStats, REVENUE_SYNONYMS);
+  if (revenueColForTrend) {
+    addSalesTrendKpi(kpis, clarifications, result, revenueColForTrend, consideredRows);
+  }
 
   return {
     status: clarifications.length > 0 ? 'needs_clarification' : 'ok',

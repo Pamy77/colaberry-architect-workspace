@@ -47,6 +47,7 @@ export const ClarificationSchema = z.object({
     'low_coverage',
     'inconsistent_column',
     'missing_kpi_inputs',
+    'insufficient_trend_data',
   ]),
   question: z.string().min(1),
   column: z.string().nullable(),

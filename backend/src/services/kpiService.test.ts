@@ -1,4 +1,7 @@
+import fs from 'fs';
+import path from 'path';
 import type { CleaningResult } from './dataCleaningService';
+import { cleanFile } from './dataCleaningService';
 import { calculateKpis, logKpiCalculation, type Kpi } from './kpiService';
 
 function makeResult(
@@ -194,6 +197,96 @@ describe('calculateKpis', () => {
     const calc = calculateKpis(result);
     expect(byKey(calc.kpis, 'business.revenue.total')?.value).toBe(3000.5);
     expect(calc.status).toBe('ok');
+  });
+});
+
+describe('sales-trend KPI (business.revenue.trend.momAvg)', () => {
+  // Happy path: run the stage-1 fixture (data-cleaning-agent's handoff point)
+  // through cleanFile() then calculateKpis(), and check the trend KPI it
+  // produces. 2026-01 total is 5230 (4 clean rows), 2026-02 total is 4800
+  // (3 numeric rows -- the 2026-02-16 row is flagged with a blank revenue
+  // cell and contributes nothing, never a fabricated 0), 2026-03 total is
+  // 7450 (4 clean rows). Jan->Feb change is -430/5230, Feb->Mar change is
+  // 2650/4800; the KPI value is their average.
+  it('computes the average month-over-month change across the 3-month fixture (happy path)', async () => {
+    const fixturePath = path.join(__dirname, '__fixtures__', 'sampleSales.csv');
+    const buffer = fs.readFileSync(fixturePath);
+    const result = await cleanFile(buffer, 'sampleSales.csv');
+
+    const calc = calculateKpis(result);
+    const trend = byKey(calc.kpis, 'business.revenue.trend.momAvg');
+
+    expect(trend).toBeDefined();
+    expect(trend?.unit).toBe('ratio');
+    expect(trend?.value).toBeCloseTo(0.2349, 4);
+    expect(trend?.basis).toEqual({
+      column: 'revenue',
+      rowsConsidered: 12,
+      rowsUsed: 11,
+      coverage: 0.9167,
+    });
+    // The flagged 2026-02-16 row (blank revenue) pulls the revenue column's
+    // overall coverage to 11/12 = 0.9167, which is below KPI_HIGH_EVIDENCE_MIN
+    // (0.99) but at/above KPI_MEDIUM_EVIDENCE_MIN (0.75) -> 'medium'. The
+    // calendar-completeness signal (Jan, Feb, Mar all present, no gap) would
+    // independently be 'high', so the weaker of the two -- 'medium' -- wins.
+    // This is the documented reasoning for why one missing cell downgrades
+    // the whole trend KPI rather than being silently averaged away.
+    expect(trend?.evidenceLevel).toBe('medium');
+  });
+
+  // Failure / low-confidence path: only one month of history is present, so
+  // there is nothing to compare month-over-month. The system must not
+  // fabricate a trend value -- it should report a clarification instead
+  // (REQ-008 / STORY-007).
+  it('requests clarification instead of fabricating a trend when only one month is present', () => {
+    const result = makeResult(
+      ['date', 'revenue'],
+      [
+        { date: '2026-01-05', revenue: '1000' },
+        { date: '2026-01-12', revenue: '1200' },
+      ],
+    );
+
+    const calc = calculateKpis(result);
+
+    expect(calc.status).toBe('needs_clarification');
+    expect(byKey(calc.kpis, 'business.revenue.trend.momAvg')).toBeUndefined();
+    const clarification = calc.clarificationsNeeded.find((c) => c.code === 'insufficient_trend_data');
+    expect(clarification).toBeDefined();
+    expect(clarification?.column).toBe('revenue');
+    expect(clarification?.question).toMatch(/at least 2/);
+  });
+
+  // No date-like column at all: this dataset just isn't shaped for a trend.
+  // Mirrors the file's existing "no revenue column -> nothing to compute, no
+  // clarification" precedent rather than treating every date-less dataset as
+  // an error (important: most STORY-002 fixtures have no date column, and
+  // must keep passing unmodified).
+  it('silently skips the trend KPI when a revenue column exists but no date column does', () => {
+    const result = makeResult(
+      ['revenue', 'expenses'],
+      [
+        { revenue: '1000', expenses: '600' },
+        { revenue: '1200', expenses: '700' },
+      ],
+    );
+
+    const calc = calculateKpis(result);
+
+    expect(byKey(calc.kpis, 'business.revenue.trend.momAvg')).toBeUndefined();
+    expect(calc.clarificationsNeeded.some((c) => c.question.match(/trend/i))).toBe(false);
+  });
+
+  it('is idempotent: re-running against the same cleaned dataset produces the same value and evidence level', async () => {
+    const fixturePath = path.join(__dirname, '__fixtures__', 'sampleSales.csv');
+    const buffer = fs.readFileSync(fixturePath);
+    const result = await cleanFile(buffer, 'sampleSales.csv');
+
+    const first = byKey(calculateKpis(result).kpis, 'business.revenue.trend.momAvg');
+    const second = byKey(calculateKpis(result).kpis, 'business.revenue.trend.momAvg');
+
+    expect(second).toEqual(first);
   });
 });
 
