@@ -391,35 +391,55 @@
       "criteria": [
         {
           "text": "Given a subscription plan, when I select it, then my account is updated accordingly.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Given an expired plan, when I try to upload data, then the system prompts for renewal.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Trust: The system logs all subscription changes and usage.",
-          "passed": false
+          "passed": true
         }
       ],
-      "files_touched": [],
-      "tests_added": [],
-      "notes": null,
-      "updated_at": null,
+      "files_touched": [
+        "directives/07-subscriptions.md",
+        "backend/src/services/subscriptionPlans.ts",
+        "backend/src/services/subscriptionPlans.test.ts",
+        "backend/src/services/subscriptionStore.ts",
+        "backend/src/services/subscriptionStore.test.ts",
+        "backend/src/services/paymentProcessor.ts",
+        "backend/src/services/paymentProcessor.test.ts",
+        "backend/src/services/subscriptionService.ts",
+        "backend/src/services/subscriptionService.test.ts",
+        "backend/src/routes/subscriptionRoute.ts",
+        "backend/src/routes/subscriptionRoute.test.ts",
+        "backend/src/routes/subscriptionContract.ts",
+        "backend/src/routes/uploadRoute.ts",
+        "backend/src/routes/uploadRoute.test.ts",
+        "backend/src/routes/uploadContract.ts",
+        "backend/src/app.ts"
+      ],
+      "tests_added": [
+        "subscriptionPlans.test.ts: five REQ-007 price points, increasing row limits, isPlanId/getPlan (5 tests)",
+        "subscriptionStore.test.ts: default active free state, isActive expiry boundary, reset seam (8 tests)",
+        "paymentProcessor.test.ts: dry-run charge + receipt, payment_attempt audit line, STRIPE_API_KEY-present still falls back to dry-run and never logs the key (5 tests)",
+        "subscriptionService.test.ts: selectPlan happy path, idempotent no-op on re-selecting an active plan (no double-charge), switching plans, renewing an expired plan, invalid plan id, payment failure leaves subscription untouched, retry-then-recover, subscription_changed audit logging, both upload-gate checks incl. independence from the global row cap (17 tests)",
+        "subscriptionRoute.test.ts: POST /api/subscription/select happy path, idempotent re-select, invalid/missing planId as 400, correlation id header matches body (6 tests)",
+        "uploadRoute.test.ts (additive): expired paid plan blocks upload (402 SubscriptionExpired) before any file processing, over-limit file blocked (402 UsageLimitExceeded), a paid plan's higher limit allows a file free would have blocked, both gates log subscription_usage lines; all 10 pre-existing upload tests still pass unchanged on the default free account (4 new tests)"
+      ],
+      "notes": "Walking skeleton per directives/07-subscriptions.md, confirmed with the project owner before building: no payment processor credential exists (dry-run PaymentProcessor, same shape as emailTransport.ts) and no account/user system exists in this codebase (single global subscriptionStore, same pattern as latestKpiStore/pendingAlertStore/financialRecordStore). Row limits per tier are a documented placeholder pending real product input -- REQ-007 specifies prices, not limit values. selectPlan is idempotent: re-selecting an already-active plan never charges twice; a failed charge leaves the stored subscription untouched (no partial state). Two new upload gates (checkSubscriptionActive, checkUsageLimit) are independent of the pre-existing global UPLOAD_MAX_ROWS cap and each log a subscription_usage line whether they allow or block. Found and fixed a real bug via the new route tests, not a live check this time: this app never had express.json() registered (no earlier route needed a parsed JSON body) -- added in app.ts, confirmed it does not interfere with uploadRoute's multer-based multipart handling. Live-verified against the actually-built server: free-tier upload within limit succeeds, an over-limit file is blocked with the exact plan/limit numbers in the message, selecting a higher-tier plan live raises the limit and the same file then succeeds. Not built (deferred, documented in directives/07-subscriptions.md): a real Stripe/payment adapter, durable cross-restart subscription state, multi-tenant accounts, proration or refunds, an undo-subscription-change action.",
+      "updated_at": "2026-09-14",
       "verification": {
-        "state": "in_progress",
-        "criteria_passed": 0,
+        "state": "verified",
+        "criteria_passed": 3,
         "criteria_total": 3,
-        "verified_at": null,
+        "verified_at": "2026-09-14T22:07:11.949Z",
         "commit_sha": null,
         "commit_url": null,
         "commit_at": null,
         "points_awarded": null,
-        "outstanding": [
-          "Given a subscription plan, when I select it, then my account is updated accordingly.",
-          "Given an expired plan, when I try to upload data, then the system prompts for renewal.",
-          "Trust: The system logs all subscription changes and usage."
-        ]
+        "outstanding": []
       }
     },
     {

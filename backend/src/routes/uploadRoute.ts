@@ -5,6 +5,7 @@ import { sendValidated } from '../lib/sendValidated';
 import { cleanFile, ParseError } from '../services/dataCleaningService';
 import { calculateKpis, logKpiCalculation } from '../services/kpiService';
 import { setLatest } from '../services/latestKpiStore';
+import { checkSubscriptionActive, checkUsageLimit } from '../services/subscriptionService';
 import {
   checkIdempotency,
   deriveIdempotencyKey,
@@ -28,6 +29,21 @@ class UploadValidationError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'UploadValidationError';
+  }
+}
+
+// STORY-006 upload gates — see subscriptionService.ts / directives/07-subscriptions.md.
+class SubscriptionExpiredError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'SubscriptionExpiredError';
+  }
+}
+
+class UsageLimitExceededError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'UsageLimitExceededError';
   }
 }
 
@@ -99,6 +115,19 @@ uploadRouter.post('/upload', (req: Request, res: Response, next: NextFunction) =
     res.setHeader('X-Correlation-ID', run.runId);
     const auditContext = { filename: file.originalname, sizeBytes: file.size };
 
+    // Step: is the account's subscription active? (STORY-006, acceptance #2).
+    // Checked first, before any file processing — no reason to parse a file
+    // for an account that can't upload right now.
+    const activeCheck = checkSubscriptionActive();
+    if (activeCheck.blocked) {
+      next(
+        new SubscriptionExpiredError(
+          `Your subscription (${activeCheck.plan.label}) has expired. Renew your plan to continue uploading.`,
+        ),
+      );
+      return;
+    }
+
     // Step: record that the upload arrived. Nothing to retry — receiving already
     // happened — but it belongs in the correlation-linked audit trail.
     await runStep(run, 'receive_upload', () => ({ mimeType: file.mimetype }), {
@@ -138,6 +167,20 @@ uploadRouter.post('/upload', (req: Request, res: Response, next: NextFunction) =
         return;
       }
       next(cleaningErr);
+      return;
+    }
+
+    // Step: is this upload within the account's plan row limit? (STORY-006,
+    // "Usage limit exceeded"). Independent of UPLOAD_MAX_ROWS above, which is
+    // an unrelated global event-loop-protection cap, not a billing decision.
+    const usageCheck = checkUsageLimit(cleaning.totalDataRows);
+    if (usageCheck.blocked) {
+      next(
+        new UsageLimitExceededError(
+          `This file has ${cleaning.totalDataRows} data rows, which exceeds your ${usageCheck.plan.label} ` +
+            `plan's limit of ${usageCheck.limit} rows per upload. Upgrade your plan to upload larger files.`,
+        ),
+      );
       return;
     }
 
@@ -191,17 +234,27 @@ uploadRouter.post('/upload', (req: Request, res: Response, next: NextFunction) =
 // Express only recognizes this as error-handling middleware if it declares all 4 params.
 export function uploadErrorHandler(err: unknown, _req: Request, res: Response, _next: NextFunction): void {
   const isValidationError = err instanceof UploadValidationError || err instanceof multer.MulterError;
-  const message = isValidationError
-    ? (err as Error).message
-    : 'Unexpected error while processing the upload.';
 
-  const payload: UploadErrorResponse = {
-    status: 'error',
-    errorClass: isValidationError ? 'ValidationError' : 'UnknownError',
-    message,
-  };
+  let errorClass: UploadErrorResponse['errorClass'];
+  let status: number;
+  if (isValidationError) {
+    errorClass = 'ValidationError';
+    status = 400;
+  } else if (err instanceof SubscriptionExpiredError) {
+    errorClass = 'SubscriptionExpired';
+    status = 402;
+  } else if (err instanceof UsageLimitExceededError) {
+    errorClass = 'UsageLimitExceeded';
+    status = 402;
+  } else {
+    errorClass = 'UnknownError';
+    status = 500;
+  }
 
+  const message =
+    errorClass === 'UnknownError' ? 'Unexpected error while processing the upload.' : (err as Error).message;
+
+  const payload: UploadErrorResponse = { status: 'error', errorClass, message };
   logUploadError({ errorClass: payload.errorClass, message: payload.message });
-
-  sendValidated(res, UploadErrorResponseSchema, isValidationError ? 400 : 500, payload);
+  sendValidated(res, UploadErrorResponseSchema, status, payload);
 }

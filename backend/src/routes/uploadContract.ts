@@ -86,7 +86,9 @@ export type UploadSuccessResponse = z.infer<typeof UploadSuccessResponseSchema>;
 
 export const UploadErrorResponseSchema = z.object({
   status: z.literal('error'),
-  errorClass: z.enum(['ValidationError', 'UnknownError']),
+  // SubscriptionExpired / UsageLimitExceeded: STORY-006 upload gates —
+  // see subscriptionService.ts / directives/07-subscriptions.md.
+  errorClass: z.enum(['ValidationError', 'UnknownError', 'SubscriptionExpired', 'UsageLimitExceeded']),
   message: z.string().min(1),
 });
 export type UploadErrorResponse = z.infer<typeof UploadErrorResponseSchema>;

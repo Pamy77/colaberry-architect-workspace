@@ -3,6 +3,7 @@ import ExcelJS from 'exceljs';
 import { createApp } from '../app';
 import { recentRuns } from './uploadRoute';
 import * as dataCleaningService from '../services/dataCleaningService';
+import { resetSubscription, setSubscription } from '../services/subscriptionStore';
 
 async function buildXlsxBuffer(rows: (string | number)[][]): Promise<Buffer> {
   const workbook = new ExcelJS.Workbook();
@@ -284,5 +285,71 @@ describe('POST /api/upload', () => {
     } finally {
       logSpy.mockRestore();
     }
+  });
+});
+
+describe('POST /api/upload — subscription gates (STORY-006)', () => {
+  beforeEach(() => {
+    recentRuns.clear();
+    resetSubscription();
+  });
+  afterEach(() => {
+    jest.restoreAllMocks();
+    resetSubscription();
+  });
+
+  it('an expired paid-plan account is blocked from uploading: 402, SubscriptionExpired, not processed', async () => {
+    setSubscription({ planId: 'plan_9', selectedAt: 'T0', expiresAt: '2020-01-01T00:00:00.000Z' });
+    const cleanSpy = jest.spyOn(dataCleaningService, 'cleanFile');
+    const csvBuffer = Buffer.from('date,revenue\n2026-01-01,1000\n');
+
+    const res = await request(createApp())
+      .post('/api/upload')
+      .attach('file', csvBuffer, { filename: 'sales.csv', contentType: 'text/csv' });
+
+    expect(res.status).toBe(402);
+    expect(res.body).toMatchObject({ status: 'error', errorClass: 'SubscriptionExpired' });
+    expect(res.body.message).toMatch(/renew/i);
+    expect(cleanSpy).not.toHaveBeenCalled(); // blocked before any file processing
+  });
+
+  it('a file over the active plan\'s row limit is blocked: 402, UsageLimitExceeded, KPIs never calculated', async () => {
+    // Default plan is free (limit 1,000). 1,200 data rows exceeds it.
+    const rows = Array.from({ length: 1_200 }, (_, i) => `2026-01-01,${i}`).join('\n');
+    const csvBuffer = Buffer.from(`date,revenue\n${rows}\n`);
+
+    const res = await request(createApp())
+      .post('/api/upload')
+      .attach('file', csvBuffer, { filename: 'big.csv', contentType: 'text/csv' });
+
+    expect(res.status).toBe(402);
+    expect(res.body).toMatchObject({ status: 'error', errorClass: 'UsageLimitExceeded' });
+    expect(res.body.message).toMatch(/1200/);
+    expect(res.body.message).toMatch(/1000/);
+  });
+
+  it('a paid plan\'s higher limit allows a file the free plan would have blocked', async () => {
+    setSubscription({ planId: 'plan_79', selectedAt: 'T0', expiresAt: null }); // limit 200,000
+    const rows = Array.from({ length: 1_200 }, (_, i) => `2026-01-01,${i}`).join('\n');
+    const csvBuffer = Buffer.from(`date,revenue\n${rows}\n`);
+
+    const res = await request(createApp())
+      .post('/api/upload')
+      .attach('file', csvBuffer, { filename: 'big.csv', contentType: 'text/csv' });
+
+    expect(res.status).toBe(200);
+  });
+
+  it('both gate checks log a subscription_usage line, even when they allow the upload through', async () => {
+    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+    const csvBuffer = Buffer.from('date,revenue\n2026-01-01,1000\n');
+
+    await request(createApp())
+      .post('/api/upload')
+      .attach('file', csvBuffer, { filename: 'sales.csv', contentType: 'text/csv' });
+
+    const lines = auditLines(logSpy).filter((l) => l.event === 'subscription_usage');
+    expect(lines.map((l) => l.check).sort()).toEqual(['active', 'usage_limit']);
+    expect(lines.every((l) => l.outcome === 'allowed')).toBe(true);
   });
 });
