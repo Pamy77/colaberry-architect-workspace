@@ -2,6 +2,7 @@ import express, { Express } from 'express';
 import { uploadErrorHandler, uploadRouter } from './routes/uploadRoute';
 import { dashboardRouter } from './routes/dashboardRoute';
 import { alertsRouter } from './routes/alertsRoute';
+import { syncRouter } from './routes/syncRoute';
 
 export function createApp(): Express {
   const app = express();
@@ -13,6 +14,7 @@ export function createApp(): Express {
   app.use('/api', uploadRouter);
   app.use('/api', dashboardRouter);
   app.use('/api', alertsRouter);
+  app.use('/api', syncRouter);
   app.use(uploadErrorHandler);
 
   return app;
