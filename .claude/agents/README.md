@@ -1,5 +1,12 @@
 # Subagent definitions
 
+<video src="../artifacts/week-07/kpi-copilot-subagent-handoff-demo.mp4" controls width="720">
+  Your browser can't play this video inline — download it from
+  <a href="../artifacts/week-07/kpi-copilot-subagent-handoff-demo.mp4">artifacts/week-07/kpi-copilot-subagent-handoff-demo.mp4</a>.
+</video>
+
+*Watch `data-cleaning-agent`, `kpi-calculator-agent`, and `alert-insight-agent` hand off one task end to end, each one verifying its stage before the next fires.*
+
 Subagent definitions live here. This file also carries the one worked example of
 how the three KPI Copilot pipeline agents — `data-cleaning-agent`,
 `kpi-calculator-agent`, `alert-insight-agent` — hand off to each other on a single
