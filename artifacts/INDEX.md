@@ -10,5 +10,6 @@ week by week. Each row links to the artifact in this repo.
 | Week 3 | Build Your First AI Workflow — workflow-plan.md | [`workflow-plan.md`](./week-03/workflow-plan.md) | Own project | 3 KB |
 | Week 4 | Build Your Prompt Library — v1.0.0.md | [`v1-0-0.md`](./week-04/v1-0-0.md) | Small Business KPI Copilot | 4 KB |
 | Week 6 | Build Your Production MCP Server — File location.pdf | [`file-location.pdf`](./week-06/file-location.pdf) *(held on platform)* | Small Business KPI Copilot | 134 KB |
+| Week 7 | Build Your Subagent Integration — kpi-copilot-subagent-handoff-demo.pdf | [`kpi-copilot-subagent-handoff-demo.pdf`](./week-07/kpi-copilot-subagent-handoff-demo.pdf) *(held on platform)* | Small Business KPI Copilot | 65 KB |
 
-5 artifacts.
+6 artifacts.
