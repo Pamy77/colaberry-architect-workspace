@@ -22,7 +22,7 @@
     },
     {
       "path": "artifacts/INDEX.md",
-      "sha256": "d704955f8eb9fa323e8b44feef8956903216a984c5590424a4e1dca4bb170553"
+      "sha256": "a63cded1563bf33a79813090e6e435948a385acc839ba08e0f1a5b56b1623653"
     },
     {
       "path": "artifacts/week-01/claude-standards.md",
@@ -43,6 +43,10 @@
     {
       "path": "artifacts/week-06/file-location.pdf",
       "sha256": "f2a44ec107dc5b6cc292e056dea7a60b6d021092c863c9bae5b313aa40a536d9"
+    },
+    {
+      "path": "artifacts/week-07/kpi-copilot-subagent-handoff-demo.pdf",
+      "sha256": "647cd4083e267045d039d1829355892af5b270240c382df8430882ab880ad9d0"
     },
     {
       "path": "docs/DATA_CONTRACT.md",
