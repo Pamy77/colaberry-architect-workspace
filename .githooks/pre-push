@@ -1,0 +1,21 @@
+#!/bin/bash
+# Git pre-push hook: blocks the push if backend/frontend typecheck or tests fail.
+# Delegates all real work to scripts/headless_verify.sh - this file only wires
+# that script into git's push lifecycle.
+#
+# One-time setup per clone: git config core.hooksPath .githooks
+set -uo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+echo "pre-push: running scripts/headless_verify.sh before allowing push..."
+"$REPO_ROOT/scripts/headless_verify.sh"
+STATUS=$?
+
+if [ "$STATUS" -ne 0 ]; then
+  echo ""
+  echo "pre-push: BLOCKED - backend/frontend typecheck or tests failed."
+  echo "Fix the failures above, or bypass with 'git push --no-verify' (not recommended)."
+fi
+
+exit "$STATUS"

@@ -8,6 +8,9 @@
 
 **CLAUDE.md rule:** CLAUDE.md line 68, single-responsibility principle at line 361.
 
-**Status:** Foundation only — empty until the first operational script is actually needed.
+**Status:** `headless_verify.sh` - runs backend + frontend typecheck/tests deterministically,
+then uses a headless (`claude -p`) call with no tool access to triage the combined output into
+a short pass/fail summary. Wired into git via `.githooks/pre-push`, which blocks `git push` on
+failure. One-time setup per clone: `git config core.hooksPath .githooks`.
 
 **Verification:** Each script does one documented thing; grep for secret-shaped strings before commit; idempotency check against the operation table (CLAUDE.md lines 304-312) if the script has side effects.
