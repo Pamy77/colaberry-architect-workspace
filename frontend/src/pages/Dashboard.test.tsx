@@ -19,11 +19,21 @@ vi.mock('../services/feedbackApi', async (importOriginal) => {
   return { ...actual, fetchFeedbackStatus: vi.fn(), submitInsightFeedback: vi.fn() };
 });
 
+// STORY-010: UploadForm is now always rendered on the dashboard; mock its
+// clients too so a click in a test never hits a real network call.
+vi.mock('../services/uploadApi', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../services/uploadApi')>();
+  return { ...actual, uploadFile: vi.fn() };
+});
+vi.mock('../services/uiInteractionApi', () => ({ reportInteraction: vi.fn() }));
+
 import { fetchKpis } from '../services/kpiApi';
 import { FeedbackApiError, fetchFeedbackStatus, submitInsightFeedback } from '../services/feedbackApi';
+import { uploadFile } from '../services/uploadApi';
 const fetchKpisMock = vi.mocked(fetchKpis);
 const fetchFeedbackStatusMock = vi.mocked(fetchFeedbackStatus);
 const submitInsightFeedbackMock = vi.mocked(submitInsightFeedback);
+const uploadFileMock = vi.mocked(uploadFile);
 
 const OK_DATA: DashboardData = {
   status: 'ok',
@@ -57,6 +67,7 @@ beforeEach(() => {
   fetchKpisMock.mockReset();
   fetchFeedbackStatusMock.mockReset();
   submitInsightFeedbackMock.mockReset();
+  uploadFileMock.mockReset();
   // Default: nothing needs feedback, so existing tests that don't care
   // about STORY-009 behave exactly as before it existed.
   fetchFeedbackStatusMock.mockResolvedValue({
@@ -225,5 +236,40 @@ describe('Dashboard — feedback prompts (STORY-009 / REQ-011)', () => {
 
     expect(await screen.findByText('Total revenue')).toBeInTheDocument();
     expect(screen.queryByText(/was this insight accurate/i)).not.toBeInTheDocument();
+  });
+});
+
+describe('Dashboard — upload form (STORY-010 / REQ-018)', () => {
+  it('is always visible, even before any data exists (no_data state)', async () => {
+    fetchKpisMock.mockResolvedValue({ status: 'no_data', generatedAt: null });
+
+    render(<Dashboard />);
+
+    expect(await screen.findByText(/no kpis yet/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/choose an excel or csv file/i)).toBeInTheDocument();
+  });
+
+  it('is visible during loading and error states too', async () => {
+    fetchKpisMock.mockRejectedValue(new DashboardLoadError('boom'));
+    render(<Dashboard />);
+
+    expect(screen.getByLabelText(/choose an excel or csv file/i)).toBeInTheDocument();
+    await screen.findByRole('alert');
+    expect(screen.getByLabelText(/choose an excel or csv file/i)).toBeInTheDocument();
+  });
+
+  it('a successful upload reloads the dashboard with the new data', async () => {
+    fetchKpisMock.mockResolvedValueOnce({ status: 'no_data', generatedAt: null }).mockResolvedValueOnce(OK_DATA);
+    uploadFileMock.mockResolvedValue({ status: 'accepted', filename: 'sales.csv' });
+
+    render(<Dashboard />);
+    await screen.findByText(/no kpis yet/i);
+
+    const file = new File(['date,revenue\n2026-01-01,100\n'], 'sales.csv', { type: 'text/csv' });
+    await userEvent.upload(screen.getByLabelText(/choose an excel or csv file/i), file);
+    await userEvent.click(screen.getByRole('button', { name: 'Upload' }));
+
+    expect(await screen.findByText('Total revenue')).toBeInTheDocument();
+    expect(fetchKpisMock).toHaveBeenCalledTimes(2); // initial load + reload after upload
   });
 });

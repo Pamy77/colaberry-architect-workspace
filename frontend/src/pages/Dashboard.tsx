@@ -8,9 +8,11 @@ import {
 } from '../services/feedbackApi';
 import type { DashboardData } from '../types';
 import { KpiCard } from '../components/KpiCard';
+import { UploadForm } from '../components/UploadForm';
 
 /**
- * KPI dashboard (STORY-003 / REQ-004, extended STORY-007 / STORY-009).
+ * KPI dashboard (STORY-003 / REQ-004, extended STORY-007 / STORY-009 /
+ * STORY-010).
  *
  * Four load states:
  *  - loading  — the GET /api/kpis call is in flight
@@ -97,6 +99,11 @@ export function Dashboard() {
   return (
     <main className="dashboard">
       <h1>KPI Dashboard</h1>
+
+      {/* Always visible, regardless of load state — the upload path
+          (STORY-010 / REQ-018) never depends on the dashboard already
+          having data, and reloads it automatically on success. */}
+      <UploadForm onUploaded={() => void load()} />
 
       {state.phase === 'loading' && (
         <p className="dashboard__status">Loading your KPIs…</p>
