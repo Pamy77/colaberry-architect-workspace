@@ -9,3 +9,5 @@ Start here: [`docs/workflow-plan.md`](docs/workflow-plan.md) — the plan the Co
 ---
 
 This repo also holds other AI Accelerator Program exercises (architecture blueprints, skill labs, lessons) — see their own folders for details.
+
+<!-- CI test: verifying the automated Claude Code PR review workflow. Safe to remove; this comment is invisible in rendered markdown. -->
