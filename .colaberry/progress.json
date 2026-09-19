@@ -743,35 +743,42 @@
       "criteria": [
         {
           "text": "Given data is available, when report generation is initiated, then a detailed report should be produced with all relevant metrics.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Given incomplete data, when report generation is attempted, then the system should notify the user of missing data.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Trust: Every report generation must be logged with the parameters used and timestamp.",
-          "passed": false
+          "passed": true
         }
       ],
-      "files_touched": [],
-      "tests_added": [],
-      "notes": null,
-      "updated_at": null,
+      "files_touched": [
+        "directives/10-detailed-reports.md",
+        "backend/src/services/detailedReportService.ts",
+        "backend/src/services/detailedReportService.test.ts",
+        "backend/src/routes/detailedReportRoute.ts",
+        "backend/src/routes/detailedReportRoute.test.ts",
+        "backend/src/routes/detailedReportContract.ts",
+        "backend/src/app.ts"
+      ],
+      "tests_added": [
+        "detailedReportService.test.ts: all three sources present -> ok with every section populated and counts matching actual array lengths; sources filter narrows populated sections; one source missing -> incomplete naming exactly that source, others still populated; all three missing -> incomplete naming all three, nothing fabricated; unrecognized templateId -> invalid_template touching no data source; the log line fires on the ok, incomplete, and invalid_template paths (8 tests)",
+        "detailedReportRoute.test.ts: GET /api/reports/detailed returns ok with every section, returns incomplete and names missing sources, sources query param narrows sections, unrecognized templateId is a 400, correlation id header matches body (5 tests)"
+      ],
+      "notes": "Defined \"report template\" and \"available data sources\" for the first time in this codebase, confirmed with the project owner before building: one template (full_detail) combining KPI calculations (latestKpiStore), synced financial records (financialRecordStore), and decisions made (decisionLog, reused read-only from STORY-008). Unlike STORY-006/008, no files outside this story needed changes -- all three source stores already exposed plain read functions, so this story is scoped entirely to new files. \"Missing data\" is a uniform rule across all three sources (the source has never produced anything at all), documented as an interpretation since \"zero decisions so far\" is semantically softer than \"no KPI calculation has ever run\" but treated the same way for simplicity. Report template validated before any data access (fail fast), so an invalid template touches nothing. The audit log line is unconditional across every branch (ok, incomplete, invalid_template, and the routes defensive catch) -- the direct guard against this storys new Logging failure failure path. Live-verified against the actually-built server with real data throughout (a real upload, a real subscription selection, a real sync run), not seeded mocks: fresh system correctly showed incomplete naming all three sources; after seeding, the full report showed ok with correct counts (3 KPIs, 7 financial records, 1 decision); the sources filter and invalid-template path both confirmed live. Backend 24 suites/223 tests, tsc clean, no regressions.",
+      "updated_at": "2026-09-19",
       "verification": {
-        "state": "in_progress",
-        "criteria_passed": 0,
+        "state": "verified",
+        "criteria_passed": 3,
         "criteria_total": 3,
-        "verified_at": null,
+        "verified_at": "2026-09-19T20:12:27.134Z",
         "commit_sha": null,
         "commit_url": null,
         "commit_at": null,
         "points_awarded": null,
-        "outstanding": [
-          "Given data is available, when report generation is initiated, then a detailed report should be produced with all relevant metrics.",
-          "Given incomplete data, when report generation is attempted, then the system should notify the user of missing data.",
-          "Trust: Every report generation must be logged with the parameters used and timestamp."
-        ]
+        "outstanding": []
       }
     },
     {
