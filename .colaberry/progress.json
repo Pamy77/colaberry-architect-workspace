@@ -546,35 +546,54 @@
       "criteria": [
         {
           "text": "Given an insight, when I provide feedback, then the system records it.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Given no feedback, when I check insights, then the system prompts for feedback.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Trust: The system logs all feedback received and its impact.",
-          "passed": false
+          "passed": true
         }
       ],
-      "files_touched": [],
-      "tests_added": [],
-      "notes": null,
-      "updated_at": null,
+      "files_touched": [
+        "directives/11-insight-feedback.md",
+        "backend/src/services/feedbackStore.ts",
+        "backend/src/services/feedbackStore.test.ts",
+        "backend/src/services/feedbackService.ts",
+        "backend/src/services/feedbackService.test.ts",
+        "backend/src/routes/feedbackRoute.ts",
+        "backend/src/routes/feedbackRoute.test.ts",
+        "backend/src/routes/feedbackContract.ts",
+        "backend/src/app.ts",
+        "frontend/src/services/feedbackApi.ts",
+        "frontend/src/services/feedbackApi.test.ts",
+        "frontend/src/components/KpiCard.tsx",
+        "frontend/src/components/KpiCard.test.tsx",
+        "frontend/src/pages/Dashboard.tsx",
+        "frontend/src/pages/Dashboard.test.tsx"
+      ],
+      "tests_added": [
+        "feedbackStore.test.ts: record + resubmit-updates-in-place (not a duplicate), independent (kpiKey, generatedAt) keys, status lookup, list newest-first, reset seam (8 tests)",
+        "feedbackService.test.ts: happy path records against a real latest calculation, resubmission is updated, unknown kpiKey / stale generatedAt / no calculation at all are all insight_not_found with nothing stored, impact note differs for confirming vs contradicting a high-confidence insight, feedback_received logs on every branch including rejection, getFeedbackStatus reflects real state (11 tests)",
+        "feedbackRoute.test.ts: POST /api/insights/feedback happy path (200), unknown insight (404), malformed body (400), correlation id header matches body, idempotent resubmission; GET /api/insights/feedback-status reflects real feedback state (7 tests)",
+        "feedbackApi.test.ts: fetchFeedbackStatus and submitInsightFeedback mirror kpiApi.ts exact retry/timeout/terminal-error shape; a 404 insight_not_found is treated as a real terminal answer, never retried (9 tests)",
+        "KpiCard.test.tsx (additive): no prompt/confirmation when neither requested (default, unaffected call sites), prompt shows when needsFeedback, onSubmitFeedback fires with the chosen rating, confirmation replaces the prompt once feedback exists (4 tests)",
+        "Dashboard.test.tsx (additive, plus feedbackApi now properly mocked to stop dangling retry timers past test teardown): prompts exactly the KPI the status fetch names as needing it, submitting removes the prompt and shows the rating, a failed submission shows a friendly error without crashing the page, a failed status fetch does not block the main dashboard from rendering (4 tests)"
+      ],
+      "notes": "Defined \"an insight\" as a specific (kpiKey, generatedAt) pair, not a KPI key in the abstract -- last months revenue figure and this months are different insights, so feedback on one never silently applies to the other. \"Impact\" (Trust criterion 3) is a logged, derived note -- does the feedback confirm or contradict the systems own evidenceLevel -- not an actual re-training loop, which no acceptance criterion asks for. Backend is two independent new endpoints specifically so dashboardRoute.ts/dashboardContract.ts never needed to change. Two frontend files outside this storys own new files were touched, flagged and agreed before building: KpiCard.tsx (additive-only props with defaults that keep every pre-STORY-009 call site unaffected, confirmed by running the pre-existing tests before adding any new ones) and Dashboard.tsx (fetches feedback status alongside KPIs, owns the actual submission, a failed status fetch never blocks the main dashboard from rendering). Disclosed scoping choices: the feedback UI is two buttons with immediate submit, no comment textbox yet even though the backend already supports one; a card with feedback from a prior session shows neither prompt nor confirmation, since getFeedbackStatus only returns keys, not past ratings. Live-verified end to end in a real browser against real uploaded data: all three fresh KPI cards correctly prompted, clicking Accurate on one flipped it to a confirmation while the other two kept prompting, and a direct feedback-status API check confirmed the submission actually persisted server-side. Backend 27 suites/249 tests, frontend 4 files/32 tests, tsc clean on both, no regressions.",
+      "updated_at": "2026-09-19",
       "verification": {
-        "state": "in_progress",
-        "criteria_passed": 0,
+        "state": "verified",
+        "criteria_passed": 3,
         "criteria_total": 3,
-        "verified_at": null,
+        "verified_at": "2026-09-19T20:40:51.912Z",
         "commit_sha": null,
         "commit_url": null,
         "commit_at": null,
         "points_awarded": null,
-        "outstanding": [
-          "Given an insight, when I provide feedback, then the system records it.",
-          "Given no feedback, when I check insights, then the system prompts for feedback.",
-          "Trust: The system logs all feedback received and its impact."
-        ]
+        "outstanding": []
       }
     },
     {

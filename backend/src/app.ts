@@ -6,6 +6,7 @@ import { syncRouter } from './routes/syncRoute';
 import { subscriptionRouter } from './routes/subscriptionRoute';
 import { reportRouter } from './routes/reportRoute';
 import { detailedReportRouter } from './routes/detailedReportRoute';
+import { feedbackRouter } from './routes/feedbackRoute';
 
 export function createApp(): Express {
   const app = express();
@@ -26,6 +27,7 @@ export function createApp(): Express {
   app.use('/api', subscriptionRouter);
   app.use('/api', reportRouter);
   app.use('/api', detailedReportRouter);
+  app.use('/api', feedbackRouter);
   app.use(uploadErrorHandler);
 
   return app;

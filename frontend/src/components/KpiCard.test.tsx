@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { KpiCard } from './KpiCard';
 import type { Kpi } from '../types';
 
@@ -51,5 +52,37 @@ describe('KpiCard', () => {
     expect(screen.getByText('Total revenue')).toBeInTheDocument();
     expect(screen.getByText(/\$250/)).toBeInTheDocument();
     expect(screen.getByText('Low confidence')).toBeInTheDocument();
+  });
+});
+
+describe('KpiCard — feedback prompt (STORY-009 / REQ-011)', () => {
+  it('shows no feedback prompt or confirmation when neither is requested (default, unaffected call sites)', () => {
+    render(<KpiCard kpi={kpi()} />);
+    expect(screen.queryByText(/was this insight accurate/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/you rated this/i)).not.toBeInTheDocument();
+  });
+
+  it('shows the prompt when needsFeedback is true (acceptance #2)', () => {
+    render(<KpiCard kpi={kpi()} needsFeedback />);
+    expect(screen.getByText(/was this insight accurate/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Accurate' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Inaccurate' })).toBeInTheDocument();
+  });
+
+  it('calls onSubmitFeedback with the chosen rating when a button is clicked', async () => {
+    const onSubmitFeedback = vi.fn();
+    render(<KpiCard kpi={kpi()} needsFeedback onSubmitFeedback={onSubmitFeedback} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Inaccurate' }));
+
+    expect(onSubmitFeedback).toHaveBeenCalledWith('inaccurate');
+  });
+
+  it('shows a confirmation instead of the prompt once feedback already exists', () => {
+    render(<KpiCard kpi={kpi()} needsFeedback={false} feedbackRating="accurate" />);
+
+    expect(screen.getByText(/you rated this/i)).toBeInTheDocument();
+    expect(screen.getByText('accurate')).toBeInTheDocument();
+    expect(screen.queryByText(/was this insight accurate/i)).not.toBeInTheDocument();
   });
 });

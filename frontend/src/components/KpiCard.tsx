@@ -1,4 +1,5 @@
 import type { Kpi, KpiUnit } from '../types';
+import type { FeedbackRating } from '../services/feedbackApi';
 
 const FORMATTERS: Record<KpiUnit, (value: number) => string> = {
   // Currency assumes USD for now (small-business default); a later story can
@@ -14,7 +15,27 @@ const EVIDENCE_LABEL: Record<Kpi['evidenceLevel'], string> = {
   low: 'Low confidence',
 };
 
-export function KpiCard({ kpi }: { kpi: Kpi }) {
+export interface KpiCardProps {
+  kpi: Kpi;
+  /**
+   * Whether this insight (this KPI at this calculation) still needs
+   * feedback (STORY-009 / REQ-011). Defaults to false — no prompt — so
+   * every existing call site that doesn't pass this is unaffected.
+   */
+  needsFeedback?: boolean;
+  /** The rating already given for this insight, if any. */
+  feedbackRating?: FeedbackRating | null;
+  /**
+   * Called when the user picks a rating. This component is purely
+   * presentational for feedback — it has no submission/loading/error
+   * state of its own; the page (`Dashboard.tsx`) owns the actual API call
+   * and re-renders with updated `needsFeedback`/`feedbackRating` once it
+   * resolves, same as it already owns the page's own load state.
+   */
+  onSubmitFeedback?: (rating: FeedbackRating) => void;
+}
+
+export function KpiCard({ kpi, needsFeedback = false, feedbackRating = null, onSubmitFeedback }: KpiCardProps) {
   return (
     <article className="kpi-card" aria-label={kpi.label}>
       <h3 className="kpi-card__label">{kpi.label}</h3>
@@ -23,6 +44,24 @@ export function KpiCard({ kpi }: { kpi: Kpi }) {
         {EVIDENCE_LABEL[kpi.evidenceLevel]}
       </span>
       <p className="kpi-card__note">{kpi.evidenceNote}</p>
+
+      {needsFeedback && (
+        <div className="kpi-card__feedback-prompt">
+          <p>Was this insight accurate?</p>
+          <button type="button" onClick={() => onSubmitFeedback?.('accurate')}>
+            Accurate
+          </button>
+          <button type="button" onClick={() => onSubmitFeedback?.('inaccurate')}>
+            Inaccurate
+          </button>
+        </div>
+      )}
+
+      {!needsFeedback && feedbackRating && (
+        <p className="kpi-card__feedback-given">
+          You rated this <strong>{feedbackRating}</strong>.
+        </p>
+      )}
     </article>
   );
 }

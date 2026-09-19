@@ -11,8 +11,19 @@ vi.mock('../services/kpiApi', async (importOriginal) => {
   return { ...actual, fetchKpis: vi.fn() };
 });
 
+// Same reason: without this, Dashboard's real fetchFeedbackStatus call
+// hits an unmocked relative URL in every test and retries with real
+// backoff timers that outlive the test (STORY-009).
+vi.mock('../services/feedbackApi', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../services/feedbackApi')>();
+  return { ...actual, fetchFeedbackStatus: vi.fn(), submitInsightFeedback: vi.fn() };
+});
+
 import { fetchKpis } from '../services/kpiApi';
+import { FeedbackApiError, fetchFeedbackStatus, submitInsightFeedback } from '../services/feedbackApi';
 const fetchKpisMock = vi.mocked(fetchKpis);
+const fetchFeedbackStatusMock = vi.mocked(fetchFeedbackStatus);
+const submitInsightFeedbackMock = vi.mocked(submitInsightFeedback);
 
 const OK_DATA: DashboardData = {
   status: 'ok',
@@ -44,6 +55,15 @@ const OK_DATA: DashboardData = {
 
 beforeEach(() => {
   fetchKpisMock.mockReset();
+  fetchFeedbackStatusMock.mockReset();
+  submitInsightFeedbackMock.mockReset();
+  // Default: nothing needs feedback, so existing tests that don't care
+  // about STORY-009 behave exactly as before it existed.
+  fetchFeedbackStatusMock.mockResolvedValue({
+    generatedAt: OK_DATA.generatedAt as string,
+    kpiKeysWithFeedback: [],
+    kpiKeysNeedingFeedback: [],
+  });
 });
 
 describe('Dashboard', () => {
@@ -132,5 +152,78 @@ describe('Dashboard', () => {
 
     expect(await screen.findByText(/no kpis yet/i)).toBeInTheDocument();
     expect(fetchKpisMock).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('Dashboard — feedback prompts (STORY-009 / REQ-011)', () => {
+  it('prompts for feedback on a KPI the status fetch names as needing it (acceptance #2)', async () => {
+    fetchKpisMock.mockResolvedValue(OK_DATA);
+    fetchFeedbackStatusMock.mockResolvedValue({
+      generatedAt: OK_DATA.generatedAt as string,
+      kpiKeysWithFeedback: [],
+      kpiKeysNeedingFeedback: ['business.revenue.total'],
+    });
+
+    render(<Dashboard />);
+
+    expect(await screen.findByText(/was this insight accurate/i)).toBeInTheDocument();
+    // The other KPI on the same page, not named as needing feedback, gets no prompt.
+    const cards = screen.getAllByRole('article');
+    const marginCard = cards.find((c) => c.getAttribute('aria-label') === 'Gross margin');
+    expect(marginCard).toBeDefined();
+    expect(marginCard!.textContent).not.toMatch(/was this insight accurate/i);
+  });
+
+  it('submitting feedback removes the prompt and shows the given rating', async () => {
+    fetchKpisMock.mockResolvedValue(OK_DATA);
+    fetchFeedbackStatusMock.mockResolvedValue({
+      generatedAt: OK_DATA.generatedAt as string,
+      kpiKeysWithFeedback: [],
+      kpiKeysNeedingFeedback: ['business.revenue.total'],
+    });
+    submitInsightFeedbackMock.mockResolvedValue({ outcome: 'recorded', correlationId: 'c1' });
+
+    render(<Dashboard />);
+    await screen.findByText(/was this insight accurate/i);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Accurate' }));
+
+    expect(await screen.findByText(/you rated this/i)).toBeInTheDocument();
+    expect(screen.queryByText(/was this insight accurate/i)).not.toBeInTheDocument();
+    expect(submitInsightFeedbackMock).toHaveBeenCalledWith({
+      kpiKey: 'business.revenue.total',
+      generatedAt: OK_DATA.generatedAt,
+      rating: 'accurate',
+    });
+  });
+
+  it('a failed feedback submission shows a friendly error without crashing the page (User interface issues)', async () => {
+    fetchKpisMock.mockResolvedValue(OK_DATA);
+    fetchFeedbackStatusMock.mockResolvedValue({
+      generatedAt: OK_DATA.generatedAt as string,
+      kpiKeysWithFeedback: [],
+      kpiKeysNeedingFeedback: ['business.revenue.total'],
+    });
+    submitInsightFeedbackMock.mockRejectedValue(
+      new FeedbackApiError('Could not submit your feedback. Check your connection and try again.'),
+    );
+
+    render(<Dashboard />);
+    await screen.findByText(/was this insight accurate/i);
+    await userEvent.click(screen.getByRole('button', { name: 'Accurate' }));
+
+    expect(await screen.findByText(/could not submit your feedback/i)).toBeInTheDocument();
+    // The rest of the page is still intact — not replaced by an error screen.
+    expect(screen.getByText('Total revenue')).toBeInTheDocument();
+  });
+
+  it('a failed feedback-status fetch does not block the main dashboard from rendering', async () => {
+    fetchKpisMock.mockResolvedValue(OK_DATA);
+    fetchFeedbackStatusMock.mockRejectedValue(new Error('status check failed'));
+
+    render(<Dashboard />);
+
+    expect(await screen.findByText('Total revenue')).toBeInTheDocument();
+    expect(screen.queryByText(/was this insight accurate/i)).not.toBeInTheDocument();
   });
 });
