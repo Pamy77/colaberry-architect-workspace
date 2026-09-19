@@ -449,35 +449,40 @@
       "criteria": [
         {
           "text": "Given uncertain KPI calculations, when they occur, then the system requests clarification.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Given a KPI with low confidence, when displayed, then it shows the evidence level.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Trust: The system logs all uncertainty handling and evidence levels.",
-          "passed": false
+          "passed": true
         }
       ],
-      "files_touched": [],
-      "tests_added": [],
-      "notes": null,
-      "updated_at": null,
+      "files_touched": [
+        "directives/08-kpi-uncertainty.md",
+        "backend/src/services/kpiService.test.ts",
+        "frontend/src/components/KpiCard.test.tsx",
+        "frontend/src/pages/Dashboard.test.tsx"
+      ],
+      "tests_added": [
+        "kpiService.test.ts (extended): the coverage-boundary test now also proves a genuine low-evidence scenario (1 of 5 rows numeric, coverage 0.2) yields evidenceLevel: low on the resulting Kpi, alongside a low_coverage clarification for the same column",
+        "KpiCard.test.tsx (new file, none existed before): low-confidence KPI renders \"Low confidence\" + kpi-card__evidence--low + its note; medium and high render distinctly from low and from each other; label/value always render alongside the evidence level (4 tests)",
+        "Dashboard.test.tsx (extended): a calculation mixing high/medium/low KPIs renders all three confidence labels correctly on one page, proving the acceptance criterion's literal wording at the page level"
+      ],
+      "notes": "This was a verification-and-gap-closure story, not a build-from-scratch one: REQ-008 (clarificationsNeeded, plain-English questions, never fabricating a number) and REQ-009 (evidenceLevel high/medium/low, boundary-tested, logged on every calculation) were already substantially implemented by STORY-002 (backend, kpiService.ts) and STORY-003 (frontend, KpiCard.tsx + Dashboard.tsx), confirmed by reading the existing code and tests before writing anything new. The one real gap: nothing anywhere -- backend or frontend -- had ever exercised the low evidence level specifically; the boundary test only covered high/medium, Dashboard.test.tsx only asserted \"High confidence\" renders, and no KpiCard.test.tsx existed at all. Closed that gap at three layers (service-level unit test, new component-level test, page-level integration test) rather than rebuilding working mechanism a second time. Additionally verified live, in a real browser: ran both dev servers for real, uploaded a real CSV with a genuinely sparse column through the actual backend (not a mock), and drove a real headless Chromium instance (Playwright installed only in a scratch directory, not added to package.json) against the live dashboard -- screenshot confirmed the \"Before these numbers are final\" clarification section and the Low confidence pills rendering correctly next to High confidence ones, zero console errors. Full regression: backend 19 suites/188 tests, frontend 3 files/15 tests, tsc clean on both, no regressions.",
+      "updated_at": "2026-09-19",
       "verification": {
-        "state": "in_progress",
-        "criteria_passed": 0,
+        "state": "verified",
+        "criteria_passed": 3,
         "criteria_total": 3,
-        "verified_at": null,
+        "verified_at": "2026-09-19T19:01:07.761Z",
         "commit_sha": null,
         "commit_url": null,
         "commit_at": null,
         "points_awarded": null,
-        "outstanding": [
-          "Given uncertain KPI calculations, when they occur, then the system requests clarification.",
-          "Given a KPI with low confidence, when displayed, then it shows the evidence level.",
-          "Trust: The system logs all uncertainty handling and evidence levels."
-        ]
+        "outstanding": []
       }
     },
     {

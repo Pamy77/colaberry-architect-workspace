@@ -60,6 +60,38 @@ describe('Dashboard', () => {
     expect(screen.getByText(/sales\.csv/)).toBeInTheDocument();
   });
 
+  it('shows the evidence level on a low-confidence KPI alongside higher-confidence ones (STORY-007 / REQ-009)', async () => {
+    fetchKpisMock.mockResolvedValue({
+      ...OK_DATA,
+      status: 'needs_clarification',
+      kpis: [
+        ...OK_DATA.kpis,
+        {
+          key: 'column.qty.total',
+          label: 'Total of qty',
+          value: 1,
+          unit: 'number',
+          evidenceLevel: 'low',
+          evidenceNote: '1 of 5 row(s) had a numeric value (20% coverage); 4 row(s) were empty or non-numeric.',
+          basis: { column: 'qty', rowsConsidered: 5, rowsUsed: 1, coverage: 0.2 },
+        },
+      ],
+      clarificationsNeeded: [
+        { code: 'low_coverage', question: 'Only 20% of rows have a usable value for "qty".', column: 'qty' },
+      ],
+    });
+
+    render(<Dashboard />);
+
+    // All three levels visible together on one page — the acceptance
+    // criterion's literal case (a low-confidence KPI, when displayed).
+    expect(await screen.findByText('High confidence')).toBeInTheDocument();
+    expect(screen.getByText('Medium confidence')).toBeInTheDocument();
+    expect(screen.getByText('Low confidence')).toBeInTheDocument();
+    expect(screen.getByText('Total of qty')).toBeInTheDocument();
+    expect(screen.getByText(/only 20% of rows/i)).toBeInTheDocument();
+  });
+
   it('lists clarification questions when the data is incomplete', async () => {
     fetchKpisMock.mockResolvedValue({
       ...OK_DATA,

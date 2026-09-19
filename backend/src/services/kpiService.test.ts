@@ -183,6 +183,20 @@ describe('calculateKpis', () => {
       makeResult(['qty'], [{ qty: '1' }, { qty: '2' }, { qty: '3' }, { qty: 'x' }]),
     );
     expect(byKey(medium.kpis, 'column.qty.total')?.evidenceLevel).toBe('medium');
+
+    // 1 of 5 rows numeric -> coverage 0.2, below KPI_MEDIUM_EVIDENCE_MIN -> 'low'.
+    // The KPI still appears (never withheld) alongside a low_coverage
+    // clarification for the same column (REQ-008 + REQ-009 together: show
+    // the shaky number, be honest it's shaky, and ask about it).
+    const low = calculateKpis(
+      makeResult(['qty'], [{ qty: '1' }, { qty: 'x' }, { qty: 'x' }, { qty: 'x' }, { qty: 'x' }]),
+    );
+    const lowKpi = byKey(low.kpis, 'column.qty.total');
+    expect(lowKpi?.evidenceLevel).toBe('low');
+    expect(lowKpi?.basis.coverage).toBeCloseTo(0.2, 4);
+    expect(low.clarificationsNeeded).toContainEqual(
+      expect.objectContaining({ code: 'low_coverage', column: 'qty' }),
+    );
   });
 
   it('normalizes currency-formatted values', () => {
