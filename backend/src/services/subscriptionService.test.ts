@@ -6,6 +6,7 @@ import {
 import { getCurrentSubscription, resetSubscription, setSubscription } from './subscriptionStore';
 import type { PaymentProcessor, PaymentReceipt } from './paymentProcessor';
 import type { PlanId } from './subscriptionPlans';
+import { clearDecisions, listDecisions } from './decisionLog';
 
 function auditLines(spy: jest.SpyInstance): Array<Record<string, unknown>> {
   return spy.mock.calls
@@ -57,6 +58,7 @@ function flakyProcessor(failuresBeforeSuccess: number): PaymentProcessor & { cal
 
 beforeEach(() => {
   resetSubscription();
+  clearDecisions();
 });
 
 describe('selectPlan — happy path and idempotency', () => {
@@ -202,5 +204,32 @@ describe('checkUsageLimit', () => {
     const line = auditLines(logSpy).find((l) => l.event === 'subscription_usage' && l.check === 'usage_limit');
     expect(line).toMatchObject({ outcome: 'blocked', rowCount: 2000, limit: 1000 });
     logSpy.mockRestore();
+  });
+});
+
+describe('selectPlan — decision recording (STORY-008)', () => {
+  it('a real plan change records exactly one decision', async () => {
+    await selectPlan('plan_9', { processor: countingProcessor() });
+    expect(listDecisions()).toHaveLength(1);
+    expect(listDecisions()[0]).toMatchObject({ type: 'subscription_change' });
+  });
+
+  it('already_active (no-op) records no decision', async () => {
+    await selectPlan('free'); // default is already free and active
+    expect(listDecisions()).toHaveLength(0);
+  });
+
+  it('payment_failed records no decision — nothing changed, so nothing to report', async () => {
+    await selectPlan('plan_19', {
+      processor: alwaysFailingProcessor('card declined'),
+      retries: 0,
+      sleep: noSleep,
+    });
+    expect(listDecisions()).toHaveLength(0);
+  });
+
+  it('invalid_plan records no decision', async () => {
+    await selectPlan('plan_999');
+    expect(listDecisions()).toHaveLength(0);
   });
 });

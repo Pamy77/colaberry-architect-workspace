@@ -5,6 +5,7 @@ import { _clearSentAlerts } from '../services/notificationService';
 import * as notificationService from '../services/notificationService';
 import { clearPendingAlerts } from '../services/pendingAlertStore';
 import type { KpiCalculation, Kpi } from '../services/kpiService';
+import { clearDecisions, listDecisions } from '../services/decisionLog';
 
 function kpi(key: string, value: number): Kpi {
   return {
@@ -246,6 +247,67 @@ describe('POST /api/alerts/:id/approve, /reject, GET /api/alerts/pending', () =>
     const res = await request(createApp()).get('/api/alerts/pending');
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ pending: [] });
+  });
+});
+
+describe('POST /api/alerts/:id/approve, /reject — decision recording (STORY-008)', () => {
+  beforeEach(() => {
+    clearLatest();
+    _clearSentAlerts();
+    clearPendingAlerts();
+    clearDecisions();
+  });
+  afterEach(() => jest.restoreAllMocks());
+
+  async function draftPendingAlert(app: ReturnType<typeof createApp>): Promise<string> {
+    seedSignificantChange();
+    const res = await request(app).post('/api/alerts/run');
+    expect(res.body.status).toBe('pending_approval');
+    return res.body.alertId as string;
+  }
+
+  it('a fresh approve records exactly one decision', async () => {
+    silenceLogs();
+    const app = createApp();
+    const id = await draftPendingAlert(app);
+
+    await request(app).post(`/api/alerts/${id}/approve`);
+
+    expect(listDecisions()).toHaveLength(1);
+    expect(listDecisions()[0]).toMatchObject({ type: 'alert_approved' });
+  });
+
+  it('a reused/idempotent approve (already approved) records no additional decision', async () => {
+    silenceLogs();
+    const app = createApp();
+    const id = await draftPendingAlert(app);
+
+    await request(app).post(`/api/alerts/${id}/approve`);
+    await request(app).post(`/api/alerts/${id}/approve`); // reused path
+
+    expect(listDecisions()).toHaveLength(1); // still just the one real decision
+  });
+
+  it('a genuine reject records exactly one decision', async () => {
+    silenceLogs();
+    const app = createApp();
+    const id = await draftPendingAlert(app);
+
+    await request(app).post(`/api/alerts/${id}/reject`);
+
+    expect(listDecisions()).toHaveLength(1);
+    expect(listDecisions()[0]).toMatchObject({ type: 'alert_rejected' });
+  });
+
+  it('a repeat reject on an already-rejected entry records no additional decision', async () => {
+    silenceLogs();
+    const app = createApp();
+    const id = await draftPendingAlert(app);
+
+    await request(app).post(`/api/alerts/${id}/reject`);
+    await request(app).post(`/api/alerts/${id}/reject`); // idempotent no-op
+
+    expect(listDecisions()).toHaveLength(1); // still just the one real decision
   });
 });
 

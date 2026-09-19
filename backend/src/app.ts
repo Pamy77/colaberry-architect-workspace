@@ -4,6 +4,7 @@ import { dashboardRouter } from './routes/dashboardRoute';
 import { alertsRouter } from './routes/alertsRoute';
 import { syncRouter } from './routes/syncRoute';
 import { subscriptionRouter } from './routes/subscriptionRoute';
+import { reportRouter } from './routes/reportRoute';
 
 export function createApp(): Express {
   const app = express();
@@ -22,6 +23,7 @@ export function createApp(): Express {
   app.use('/api', alertsRouter);
   app.use('/api', syncRouter);
   app.use('/api', subscriptionRouter);
+  app.use('/api', reportRouter);
   app.use(uploadErrorHandler);
 
   return app;

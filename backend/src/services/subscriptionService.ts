@@ -2,6 +2,7 @@ import { newRun, runStep } from './processingAudit';
 import { getPlan, isPlanId, type SubscriptionPlan } from './subscriptionPlans';
 import { createPaymentProcessor, type PaymentProcessor } from './paymentProcessor';
 import { getCurrentSubscription, isActive, setSubscription, type Subscription } from './subscriptionStore';
+import { recordDecision } from './decisionLog';
 
 /**
  * Orchestrates subscription-plan changes and the two upload-time gate checks
@@ -117,6 +118,14 @@ export async function selectPlan(planId: string, options: SelectPlanOptions = {}
   };
   setSubscription(updated);
   logSubscriptionChanged('updated', run.runId, { planId: plan.id, previousPlanId: current.planId });
+  // STORY-008: a real plan change is a decision worth reporting on. Only
+  // this branch records one — already_active/payment_failed/invalid_plan
+  // changed nothing, so there is nothing to report (directives/09-summary-reports.md).
+  recordDecision({
+    type: 'subscription_change',
+    summary: `Subscribed to ${plan.label} (was ${current.planId})`,
+    context: { planId: plan.id, previousPlanId: current.planId, priceUsd: plan.priceUsd },
+  });
   return { outcome: 'updated', subscription: updated, correlationId: run.runId };
 }
 

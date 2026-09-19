@@ -492,35 +492,51 @@
       "criteria": [
         {
           "text": "Given business actions, when a report is generated, then it includes all relevant decisions.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Given no actions, when a report is generated, then it indicates no actions taken.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Trust: The system logs all report generation activities.",
-          "passed": false
+          "passed": true
         }
       ],
-      "files_touched": [],
-      "tests_added": [],
-      "notes": null,
-      "updated_at": null,
+      "files_touched": [
+        "directives/09-summary-reports.md",
+        "backend/src/services/decisionLog.ts",
+        "backend/src/services/decisionLog.test.ts",
+        "backend/src/services/reportService.ts",
+        "backend/src/services/reportService.test.ts",
+        "backend/src/routes/reportRoute.ts",
+        "backend/src/routes/reportRoute.test.ts",
+        "backend/src/routes/reportContract.ts",
+        "backend/src/app.ts",
+        "backend/src/services/subscriptionService.ts",
+        "backend/src/services/subscriptionService.test.ts",
+        "backend/src/routes/alertsRoute.ts",
+        "backend/src/routes/alertsRoute.test.ts"
+      ],
+      "tests_added": [
+        "decisionLog.test.ts: record with generated id/timestamp, independent ids, explicit occurredAt override, list newest-first, empty listing, reset seam (6 tests)",
+        "reportService.test.ts: includes every recorded decision, decisionCount always equals decisions.length (guard against incorrect content), no_actions on an empty log, report_generated audit line logs on every call including no_actions (5 tests)",
+        "reportRoute.test.ts: GET /api/reports/summary returns no_actions when empty, includes every decision, correlation id header matches body (3 tests)",
+        "subscriptionService.test.ts (additive): a real plan change records exactly one decision; already_active, payment_failed, and invalid_plan each record none (4 tests)",
+        "alertsRoute.test.ts (additive): a fresh approve records exactly one decision; a reused/idempotent approve records none; a genuine reject records exactly one; a repeat reject on an already-rejected entry records none (4 tests)"
+      ],
+      "notes": "Defined, for the first time in this codebase, what counts as a reportable \"decision\": a subscription plan change that actually took effect, or a human approving/rejecting a drafted KPI alert -- confirmed with the project owner before building, since nothing here was previously defined and a different reasonable reading (e.g. counting failed attempts or KPI clarifications) would change what \"all relevant decisions\" means. Explicitly excluded: clarifications (the system asking, not deciding -- STORY-009 territory), sync runs (automated), and no-op/failed attempts (already_active, payment_failed, invalid_plan, a repeat approve/reject) since nothing changed. decisionLog.ts is a new in-memory store (same walking-skeleton pattern as every other store in this codebase); reportService.ts reads it into a typed report (ok or no_actions, never an ambiguous empty array). Touched two files outside this story -- subscriptionService.ts and alertsRoute.ts -- to record a decision at the exact moment each qualifying one happens, since nothing previously kept history; both guarded precisely against double-recording an idempotent replay (fresh-vs-reused approve, pending-vs-already-rejected reject), each proven by a dedicated test. Found and fixed a real bug via the route tests: reportRoute.ts initially generated a separate randomUUID() for the X-Correlation-ID header instead of reusing the reports own correlationId, the same class of bug already avoided in syncRoute.ts earlier -- fixed by deriving the header from the report itself. Live-verified against the actually-built server: an empty report correctly showed no_actions; a real subscription change plus a real alert approval (from an actual baseline-then-spike upload through real detection and approval, not seeded data) both landed in the final report with decisionCount: 2, correct content, newest-first order. Backend 22 suites/210 tests, tsc clean, no regressions.",
+      "updated_at": "2026-09-19",
       "verification": {
-        "state": "in_progress",
-        "criteria_passed": 0,
+        "state": "verified",
+        "criteria_passed": 3,
         "criteria_total": 3,
-        "verified_at": null,
+        "verified_at": "2026-09-19T19:40:10.955Z",
         "commit_sha": null,
         "commit_url": null,
         "commit_at": null,
         "points_awarded": null,
-        "outstanding": [
-          "Given business actions, when a report is generated, then it includes all relevant decisions.",
-          "Given no actions, when a report is generated, then it indicates no actions taken.",
-          "Trust: The system logs all report generation activities."
-        ]
+        "outstanding": []
       }
     },
     {

@@ -11,6 +11,7 @@ import {
   markRejected,
   upsertPending,
 } from '../services/pendingAlertStore';
+import { recordDecision } from '../services/decisionLog';
 import {
   AlertActionErrorResponse,
   AlertActionErrorResponseSchema,
@@ -182,6 +183,17 @@ alertsRouter.post('/alerts/:id/approve', async (req: Request, res: Response) => 
     reused: false,
   });
 
+  // STORY-008: the human's approval is the decision — recorded once, on this
+  // fresh (non-reused) path only, regardless of whether the downstream send
+  // itself succeeded (that's a delivery detail, not a reversal of the
+  // decision). A reused/idempotent replay above never reaches here, so it
+  // never double-records (directives/09-summary-reports.md).
+  recordDecision({
+    type: 'alert_approved',
+    summary: `Approved alert for ${entry.alerts.length} KPI change(s)`,
+    context: { alertId: id, alertCount: entry.alerts.length, sent: result.sent },
+  });
+
   return sendApproveResult(res, id, entry.alerts, result);
 });
 
@@ -204,6 +216,7 @@ alertsRouter.post('/alerts/:id/reject', (req: Request, res: Response) => {
     );
   }
 
+  const wasPending = entry.status === 'pending';
   markRejected(id);
 
   logAlertEvent('info', {
@@ -212,6 +225,18 @@ alertsRouter.post('/alerts/:id/reject', (req: Request, res: Response) => {
     correlation_id: correlationId,
     alertId: id,
   });
+
+  // STORY-008: only a genuine pending -> rejected transition is a decision.
+  // A repeat reject on an already-rejected entry (idempotent no-op per
+  // pendingAlertStore.markRejected) records nothing — nothing changed the
+  // second time (directives/09-summary-reports.md).
+  if (wasPending) {
+    recordDecision({
+      type: 'alert_rejected',
+      summary: `Rejected alert for ${entry.alerts.length} KPI change(s)`,
+      context: { alertId: id, alertCount: entry.alerts.length },
+    });
+  }
 
   const payload: RejectAlertResponse = { status: 'rejected', alertId: id };
   sendValidated(res, RejectAlertResponseSchema, 200, payload);
