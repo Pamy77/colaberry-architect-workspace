@@ -6,6 +6,7 @@ import {
   submitInsightFeedback,
   type FeedbackRating,
 } from '../services/feedbackApi';
+import { InsightUndoApiError, undoInsightFeedback } from '../services/insightUndoApi';
 import type { DashboardData } from '../types';
 import { KpiCard } from '../components/KpiCard';
 import { UploadForm } from '../components/UploadForm';
@@ -93,6 +94,22 @@ export function Dashboard() {
     [],
   );
 
+  const handleUndo = useCallback(async (kpiKey: string, generatedAt: string) => {
+    setFeedbackError(null);
+    try {
+      const result = await undoInsightFeedback(kpiKey, generatedAt);
+      if (result.outcome === 'irreversible') {
+        setFeedbackError('Nothing earlier to undo to for this insight.');
+        return;
+      }
+      if (result.restoredRating) {
+        setFeedbackByKpiKey((prev) => ({ ...prev, [kpiKey]: result.restoredRating as FeedbackRating }));
+      }
+    } catch (err) {
+      setFeedbackError(err instanceof InsightUndoApiError ? err.message : 'Could not undo.');
+    }
+  }, []);
+
   useEffect(() => {
     void load();
   }, [load]);
@@ -134,6 +151,10 @@ export function Dashboard() {
             if (state.data.status === 'no_data') return;
             void handleSubmitFeedback(kpiKey, state.data.generatedAt, rating);
           }}
+          onUndo={(kpiKey) => {
+            if (state.data.status === 'no_data') return;
+            void handleUndo(kpiKey, state.data.generatedAt);
+          }}
         />
       )}
 
@@ -150,11 +171,13 @@ function DashboardBody({
   kpiKeysNeedingFeedback,
   feedbackByKpiKey,
   onSubmitFeedback,
+  onUndo,
 }: {
   data: DashboardData;
   kpiKeysNeedingFeedback: string[];
   feedbackByKpiKey: Record<string, FeedbackRating>;
   onSubmitFeedback: (kpiKey: string, rating: FeedbackRating) => void;
+  onUndo: (kpiKey: string) => void;
 }) {
   if (data.status === 'no_data') {
     return (
@@ -191,6 +214,7 @@ function DashboardBody({
             needsFeedback={kpiKeysNeedingFeedback.includes(kpi.key)}
             feedbackRating={feedbackByKpiKey[kpi.key] ?? null}
             onSubmitFeedback={(rating) => onSubmitFeedback(kpi.key, rating)}
+            onUndo={() => onUndo(kpi.key)}
           />
         ))}
       </section>

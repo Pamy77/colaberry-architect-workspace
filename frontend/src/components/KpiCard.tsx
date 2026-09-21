@@ -33,9 +33,21 @@ export interface KpiCardProps {
    * resolves, same as it already owns the page's own load state.
    */
   onSubmitFeedback?: (rating: FeedbackRating) => void;
+  /**
+   * Called when the user clicks Undo (STORY-014 / REQ-010). Offered only
+   * when `feedbackRating` is set — there is nothing to undo otherwise.
+   * Same "page owns the API call" split as `onSubmitFeedback`.
+   */
+  onUndo?: () => void;
 }
 
-export function KpiCard({ kpi, needsFeedback = false, feedbackRating = null, onSubmitFeedback }: KpiCardProps) {
+export function KpiCard({
+  kpi,
+  needsFeedback = false,
+  feedbackRating = null,
+  onSubmitFeedback,
+  onUndo,
+}: KpiCardProps) {
   return (
     <article className="kpi-card" aria-label={kpi.label}>
       <h3 className="kpi-card__label">{kpi.label}</h3>
@@ -59,7 +71,10 @@ export function KpiCard({ kpi, needsFeedback = false, feedbackRating = null, onS
 
       {!needsFeedback && feedbackRating && (
         <p className="kpi-card__feedback-given">
-          You rated this <strong>{feedbackRating}</strong>.
+          You rated this <strong>{feedbackRating}</strong>.{' '}
+          <button type="button" className="kpi-card__undo" onClick={() => onUndo?.()}>
+            Undo
+          </button>
         </p>
       )}
     </article>

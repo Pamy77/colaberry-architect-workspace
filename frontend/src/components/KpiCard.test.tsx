@@ -86,3 +86,22 @@ describe('KpiCard — feedback prompt (STORY-009 / REQ-011)', () => {
     expect(screen.queryByText(/was this insight accurate/i)).not.toBeInTheDocument();
   });
 });
+
+describe('KpiCard — undo (STORY-014 / REQ-010)', () => {
+  it('offers Undo only when feedback already exists', () => {
+    const { rerender } = render(<KpiCard kpi={kpi()} needsFeedback feedbackRating={null} />);
+    expect(screen.queryByRole('button', { name: 'Undo' })).not.toBeInTheDocument();
+
+    rerender(<KpiCard kpi={kpi()} needsFeedback={false} feedbackRating="accurate" />);
+    expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument();
+  });
+
+  it('calls onUndo when clicked', async () => {
+    const onUndo = vi.fn();
+    render(<KpiCard kpi={kpi()} needsFeedback={false} feedbackRating="accurate" onUndo={onUndo} />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Undo' }));
+
+    expect(onUndo).toHaveBeenCalledTimes(1);
+  });
+});

@@ -9,6 +9,7 @@ import { detailedReportRouter } from './routes/detailedReportRoute';
 import { feedbackRouter } from './routes/feedbackRoute';
 import { uiInteractionRouter } from './routes/uiInteractionRoute';
 import { satisfactionRouter } from './routes/satisfactionRoute';
+import { insightUndoRouter } from './routes/insightUndoRoute';
 
 export function createApp(): Express {
   const app = express();
@@ -32,6 +33,7 @@ export function createApp(): Express {
   app.use('/api', feedbackRouter);
   app.use('/api', uiInteractionRouter);
   app.use('/api', satisfactionRouter);
+  app.use('/api', insightUndoRouter);
   app.use(uploadErrorHandler);
 
   return app;

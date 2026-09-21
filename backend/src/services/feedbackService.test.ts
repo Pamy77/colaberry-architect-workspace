@@ -1,6 +1,7 @@
 import { submitFeedback, getFeedbackStatus } from './feedbackService';
 import { clearLatest, setLatest } from './latestKpiStore';
 import { clearFeedback, getFeedback } from './feedbackStore';
+import { clearVersions, listVersions } from './insightVersionStore';
 import type { KpiCalculation, EvidenceLevel } from './kpiService';
 
 function auditLines(spy: jest.SpyInstance): Array<Record<string, unknown>> {
@@ -41,6 +42,7 @@ function seed(evidenceLevel: EvidenceLevel = 'high', generatedAt = 'T1'): void {
 beforeEach(() => {
   clearLatest();
   clearFeedback();
+  clearVersions();
 });
 
 describe('submitFeedback — happy path (acceptance #1)', () => {
@@ -147,5 +149,31 @@ describe('getFeedbackStatus — prompts for feedback (acceptance #2)', () => {
     seed('high', 'T2');
     const status = getFeedbackStatus('T1');
     expect(status).toEqual({ generatedAt: 'T1', kpiKeysWithFeedback: [], kpiKeysNeedingFeedback: [] });
+  });
+});
+
+describe('submitFeedback — version recording (STORY-014)', () => {
+  it('a successful recording appends exactly one version', () => {
+    seed('high', 'T1');
+    submitFeedback({ kpiKey: 'business.revenue.total', generatedAt: 'T1', rating: 'accurate' });
+
+    expect(listVersions('business.revenue.total', 'T1')).toHaveLength(1);
+  });
+
+  it('a resubmission (updated) appends a second version, not a replacement', () => {
+    seed('high', 'T1');
+    submitFeedback({ kpiKey: 'business.revenue.total', generatedAt: 'T1', rating: 'accurate' });
+    submitFeedback({ kpiKey: 'business.revenue.total', generatedAt: 'T1', rating: 'inaccurate' });
+
+    const versions = listVersions('business.revenue.total', 'T1');
+    expect(versions).toHaveLength(2);
+    expect(versions.map((v) => v.rating)).toEqual(['accurate', 'inaccurate']);
+  });
+
+  it('insight_not_found appends no version — nothing changed, nothing to version', () => {
+    seed('high', 'T1');
+    submitFeedback({ kpiKey: 'not.a.real.kpi', generatedAt: 'T1', rating: 'accurate' });
+
+    expect(listVersions('not.a.real.kpi', 'T1')).toEqual([]);
   });
 });

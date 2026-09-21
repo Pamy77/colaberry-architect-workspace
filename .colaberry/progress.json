@@ -839,35 +839,57 @@
       "criteria": [
         {
           "text": "Given an insight is recorded, when a change is made, then the system should allow the user to undo the change.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Given a user attempts to undo a change, when the change is reversible, then the system should restore the previous state.",
-          "passed": false
+          "passed": true
         },
         {
           "text": "Trust: Every insight change and undo action must be logged with a timestamp.",
-          "passed": false
+          "passed": true
         }
       ],
-      "files_touched": [],
-      "tests_added": [],
-      "notes": null,
-      "updated_at": null,
+      "files_touched": [
+        "directives/13-insight-undo.md",
+        "backend/src/services/insightVersionStore.ts",
+        "backend/src/services/insightVersionStore.test.ts",
+        "backend/src/services/insightVersionService.ts",
+        "backend/src/services/insightVersionService.test.ts",
+        "backend/src/services/feedbackService.ts",
+        "backend/src/services/feedbackService.test.ts",
+        "backend/src/routes/insightUndoContract.ts",
+        "backend/src/routes/insightUndoRoute.ts",
+        "backend/src/routes/insightUndoRoute.test.ts",
+        "backend/src/app.ts",
+        "frontend/src/services/insightUndoApi.ts",
+        "frontend/src/services/insightUndoApi.test.ts",
+        "frontend/src/components/KpiCard.tsx",
+        "frontend/src/components/KpiCard.test.tsx",
+        "frontend/src/pages/Dashboard.tsx",
+        "frontend/src/pages/Dashboard.test.tsx"
+      ],
+      "tests_added": [
+        "insightVersionStore.test.ts: starts empty, appends with generated id/timestamp, never overwrites (accumulates oldest-first), independent histories per (kpiKey, generatedAt), reset seam (5 tests)",
+        "insightVersionService.test.ts: fewer than 2 versions is irreversible (both zero and exactly one), 2+ versions restores the correct prior rating/comment, live feedbackStore updates in the same call, undo never deletes the change it reverses (history grows), undo-of-undo toggles back predictably, every branch logs with a timestamp including irreversible (9 tests)",
+        "feedbackService.test.ts (additive): a successful recording appends exactly one version, a resubmission appends a second (not a replacement), insight_not_found appends none (3 tests)",
+        "insightUndoRoute.test.ts: irreversible with nothing changed, restores after two real changes, a single first-ever change is irreversible, malformed body is 400, correlation id header matches body (5 tests)",
+        "insightUndoApi.test.ts: posts kpiKey/generatedAt and returns the parsed result, treats irreversible as a real well-formed answer not an error, same retry/timeout/terminal-error shape as every other client (5 tests)",
+        "KpiCard.test.tsx (additive): Undo renders only when feedback exists, clicking it calls onUndo (2 tests)",
+        "Dashboard.test.tsx (additive): clicking Undo restores the prior rating shown on the card, an irreversible undo shows a plain message without crashing the page (2 tests)"
+      ],
+      "notes": "Last story in the plan. Defined \"an insight\" as exactly what STORY-009 already established (a (kpiKey, generatedAt) pair) and \"a change\" as submitting or resubmitting feedback on one -- grounded in the plans own blocked_by: STORY-009, not STORY-008s decisions or STORY-006s subscriptions. Deliberately excludes undoing decisions/subscriptions: those are genuinely irreversible in the real-world sense (cant un-send an alert email, un-charging needs a refund flow this walking skeleton doesnt have), which gives \"Irreversible change\" a second, category-level meaning beyond the in-history boundary case. History is append-only (git revert model, not git reset) -- undo appends a version restoring the prior state rather than deleting the change it reverses, so undo-of-undo toggles back predictably and the full history stays inspectable; history and live state update in one synchronous call, closing any gap for the two to diverge (the guard against Version control error). Touched one file outside this story -- feedbackService.ts (STORY-009) -- with a single additive call on its success branch only, flagged and agreed before building. Live-verified both in a real browser and against the real API: a real first-ever change followed by a real undo attempt correctly showed irreversible with a plain message and zero console errors; a real two-version history built via the actual API, then undone, correctly restored the exact prior state (rating AND comment, not just a flipped value) -- confirmed via the live feedback-status endpoint and the backend audit log, every step timestamped. Backend 34 suites/293 tests, frontend 10 files/65 tests, tsc clean on both, no regressions. This closes the last requirement in the plan.",
+      "updated_at": "2026-09-21",
       "verification": {
-        "state": "in_progress",
-        "criteria_passed": 0,
+        "state": "verified",
+        "criteria_passed": 3,
         "criteria_total": 3,
-        "verified_at": null,
+        "verified_at": "2026-09-21T18:38:17.796Z",
         "commit_sha": null,
         "commit_url": null,
         "commit_at": null,
         "points_awarded": null,
-        "outstanding": [
-          "Given an insight is recorded, when a change is made, then the system should allow the user to undo the change.",
-          "Given a user attempts to undo a change, when the change is reversible, then the system should restore the previous state.",
-          "Trust: Every insight change and undo action must be logged with a timestamp."
-        ]
+        "outstanding": []
       }
     }
   ]

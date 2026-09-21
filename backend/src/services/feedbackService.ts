@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto';
 import { getLatest } from './latestKpiStore';
 import type { EvidenceLevel } from './kpiService';
 import { recordFeedback, hasFeedback, type FeedbackEntry, type FeedbackRating } from './feedbackStore';
+import { recordInsightChange } from './insightVersionService';
 
 /**
  * Submits and reports on user feedback for insights (STORY-009 / REQ-011;
@@ -96,6 +97,10 @@ export function submitFeedback(params: SubmitFeedbackParams): SubmitFeedbackResu
   });
   const impact = computeImpact(kpi.evidenceLevel, params.rating);
   logFeedbackEvent(updated ? 'updated' : 'recorded', correlationId, params, impact);
+  // STORY-014: every successful recording is a version, so it can later be
+  // undone. Not called on insight_not_found above — nothing changed there,
+  // so there is nothing to version (directives/13-insight-undo.md).
+  recordInsightChange(params.kpiKey, params.generatedAt, params.rating, params.comment ?? null);
   return { outcome: updated ? 'updated' : 'recorded', correlationId, entry };
 }
 

@@ -27,13 +27,21 @@ vi.mock('../services/uploadApi', async (importOriginal) => {
 });
 vi.mock('../services/uiInteractionApi', () => ({ reportInteraction: vi.fn() }));
 
+// STORY-014: mock the undo client too, same reason as every other client here.
+vi.mock('../services/insightUndoApi', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../services/insightUndoApi')>();
+  return { ...actual, undoInsightFeedback: vi.fn() };
+});
+
 import { fetchKpis } from '../services/kpiApi';
 import { FeedbackApiError, fetchFeedbackStatus, submitInsightFeedback } from '../services/feedbackApi';
 import { uploadFile } from '../services/uploadApi';
+import { undoInsightFeedback } from '../services/insightUndoApi';
 const fetchKpisMock = vi.mocked(fetchKpis);
 const fetchFeedbackStatusMock = vi.mocked(fetchFeedbackStatus);
 const submitInsightFeedbackMock = vi.mocked(submitInsightFeedback);
 const uploadFileMock = vi.mocked(uploadFile);
+const undoInsightFeedbackMock = vi.mocked(undoInsightFeedback);
 
 const OK_DATA: DashboardData = {
   status: 'ok',
@@ -68,6 +76,7 @@ beforeEach(() => {
   fetchFeedbackStatusMock.mockReset();
   submitInsightFeedbackMock.mockReset();
   uploadFileMock.mockReset();
+  undoInsightFeedbackMock.mockReset();
   // Default: nothing needs feedback, so existing tests that don't care
   // about STORY-009 behave exactly as before it existed.
   fetchFeedbackStatusMock.mockResolvedValue({
@@ -271,5 +280,49 @@ describe('Dashboard — upload form (STORY-010 / REQ-018)', () => {
 
     expect(await screen.findByText('Total revenue')).toBeInTheDocument();
     expect(fetchKpisMock).toHaveBeenCalledTimes(2); // initial load + reload after upload
+  });
+});
+
+describe('Dashboard — undo (STORY-014 / REQ-010)', () => {
+  it('clicking Undo restores the prior rating shown on the card (acceptance #2)', async () => {
+    fetchKpisMock.mockResolvedValue(OK_DATA);
+    fetchFeedbackStatusMock.mockResolvedValue({
+      generatedAt: OK_DATA.generatedAt as string,
+      kpiKeysWithFeedback: [],
+      kpiKeysNeedingFeedback: ['business.revenue.total'],
+    });
+    submitInsightFeedbackMock.mockResolvedValue({ outcome: 'recorded', correlationId: 'c1' });
+    undoInsightFeedbackMock.mockResolvedValue({ outcome: 'restored', restoredRating: 'inaccurate', correlationId: 'c2' });
+
+    render(<Dashboard />);
+    await screen.findByText(/was this insight accurate/i);
+    await userEvent.click(screen.getByRole('button', { name: 'Accurate' }));
+    await screen.findByRole('button', { name: 'Undo' });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Undo' }));
+
+    expect(undoInsightFeedbackMock).toHaveBeenCalledWith('business.revenue.total', OK_DATA.generatedAt);
+    expect(await screen.findByText('inaccurate')).toBeInTheDocument();
+  });
+
+  it('an irreversible undo shows a plain message, not a crash (acceptance #1 / User interface confusion guard)', async () => {
+    fetchKpisMock.mockResolvedValue(OK_DATA);
+    fetchFeedbackStatusMock.mockResolvedValue({
+      generatedAt: OK_DATA.generatedAt as string,
+      kpiKeysWithFeedback: [],
+      kpiKeysNeedingFeedback: ['business.revenue.total'],
+    });
+    submitInsightFeedbackMock.mockResolvedValue({ outcome: 'recorded', correlationId: 'c1' });
+    undoInsightFeedbackMock.mockResolvedValue({ outcome: 'irreversible', correlationId: 'c2' });
+
+    render(<Dashboard />);
+    await screen.findByText(/was this insight accurate/i);
+    await userEvent.click(screen.getByRole('button', { name: 'Accurate' }));
+    await screen.findByRole('button', { name: 'Undo' });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Undo' }));
+
+    expect(await screen.findByText(/nothing earlier to undo/i)).toBeInTheDocument();
+    expect(screen.getByText('Total revenue')).toBeInTheDocument(); // page still intact
   });
 });
