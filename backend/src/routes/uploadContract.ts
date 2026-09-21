@@ -38,6 +38,7 @@ export const KpiSchema = z.object({
     rowsUsed: z.number().int().nonnegative(),
     coverage: z.number().min(0).max(1),
   }),
+  category: z.enum(['revenue', 'expenses']).optional(),
 });
 
 export const ClarificationSchema = z.object({
@@ -62,6 +63,14 @@ export const KpiResultSchema = z.object({
     cleanedRowCount: z.number().int().nonnegative(),
     flaggedRowCount: z.number().int().nonnegative(),
     numericColumns: z.array(z.string()),
+    dateRange: z.object({ start: z.string(), end: z.string() }).nullable(),
+    monthlySeries: z.array(
+      z.object({
+        month: z.string(),
+        revenue: z.number().nullable(),
+        expenses: z.number().nullable(),
+      }),
+    ),
   }),
 });
 export type KpiResult = z.infer<typeof KpiResultSchema>;

@@ -132,7 +132,7 @@ describe('POST /api/upload', () => {
       expect(res.body.kpis.status).toBe('ok');
       expect(res.body.kpis.clarificationsNeeded).toEqual([]);
 
-      const revenueTotal = res.body.kpis.kpis.find((k: { key: string }) => k.key === 'business.revenue.total');
+      const revenueTotal = res.body.kpis.kpis.find((k: { key: string }) => k.key === 'column.revenue.total');
       const grossProfit = res.body.kpis.kpis.find((k: { key: string }) => k.key === 'business.profit.gross');
       expect(revenueTotal.value).toBe(2200);
       expect(revenueTotal.evidenceLevel).toBe('high');

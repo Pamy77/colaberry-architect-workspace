@@ -34,6 +34,14 @@ export interface Kpi {
   evidenceLevel: EvidenceLevel;
   evidenceNote: string;
   basis: KpiBasis;
+  /**
+   * Set on the generic column.*.total/average KPIs for whichever column was
+   * detected as revenue/expenses, so the dashboard can group them
+   * deterministically without parsing labels or guessing at the literal
+   * column name (that name is whatever the uploaded file called it).
+   * Unset for every other KPI.
+   */
+  category?: 'revenue' | 'expenses';
 }
 
 export type ClarificationCode =
@@ -64,6 +72,16 @@ export interface KpiCalculation {
     cleanedRowCount: number;
     flaggedRowCount: number;
     numericColumns: string[];
+    /** The earliest/latest parseable date found in the date-like column, if any. */
+    dateRange: { start: string; end: string } | null;
+    /**
+     * Revenue/expense totals grouped by calendar month, sorted ascending
+     * (empty when there's no date column). Same month grouping as the
+     * "Sales trend" KPI, so the trend chart and that number never disagree.
+     * A `null` revenue/expenses means that month had a date column but no
+     * usable value for that metric — never a fabricated 0.
+     */
+    monthlySeries: MonthlyTotal[];
   };
 }
 
@@ -199,14 +217,14 @@ function addColumnKpis(
   const coverage = rowsUsed / consideredRows;
 
   kpis.push(
-    coverageKpi(col, consideredRows, `column.${col.header}.total`, `Total of ${col.header}`, 'number', sum(col.numeric)),
+    coverageKpi(col, consideredRows, `column.${col.header}.total`, `Total ${col.header}`, 'number', sum(col.numeric)),
   );
   kpis.push(
     coverageKpi(
       col,
       consideredRows,
       `column.${col.header}.average`,
-      `Average of ${col.header}`,
+      `Average ${col.header}`,
       'number',
       sum(col.numeric) / rowsUsed,
     ),
@@ -237,6 +255,10 @@ function addDerivedBusinessKpis(
   const revenueCol = findBySynonym(numericStats, REVENUE_SYNONYMS);
   if (!revenueCol) return;
 
+  // Not pushed to `kpis`: identical in value to the generic "Total of
+  // <column>" card addColumnKpis() already emits for this column, so a
+  // second card here would just be a duplicate. Kept locally because
+  // gross profit/margin below still need it.
   const revenue = coverageKpi(
     revenueCol,
     consideredRows,
@@ -245,7 +267,6 @@ function addDerivedBusinessKpis(
     'currency',
     sum(revenueCol.numeric),
   );
-  kpis.push(revenue);
 
   const expenseCol = findBySynonym(numericStats, EXPENSE_SYNONYMS);
   if (!expenseCol) {
@@ -257,6 +278,8 @@ function addDerivedBusinessKpis(
     return;
   }
 
+  // Same reasoning as `revenue` above: duplicate of the generic "Total of
+  // <column>" card, kept locally only for the derived KPIs below.
   const expenses = coverageKpi(
     expenseCol,
     consideredRows,
@@ -265,7 +288,6 @@ function addDerivedBusinessKpis(
     'currency',
     sum(expenseCol.numeric),
   );
-  kpis.push(expenses);
 
   const profitValue = roundTo(revenue.value - expenses.value);
   const derivedEvidence = weakest(revenue.evidenceLevel, expenses.evidenceLevel);
@@ -338,9 +360,87 @@ function monthRange(min: string, max: string): string[] {
   return months;
 }
 
+// Full-date validation (not just the year-month prefix MONTH_PREFIX_RE
+// checks) so the dashboard's date range is a real calendar date, not just a
+// month. ISO-format YYYY-MM-DD strings sort correctly as plain strings, so
+// min/max here needs no date parsing library.
+const DATE_VALUE_RE = /^\d{4}-\d{2}-\d{2}/;
+
+function parseDateValue(raw: string): string | null {
+  const trimmed = raw.trim();
+  return DATE_VALUE_RE.test(trimmed) ? trimmed.slice(0, 10) : null;
+}
+
+/**
+ * The earliest and latest parseable date in the dataset's date-like column,
+ * if it has one — same column-detection this file's trend KPI already uses
+ * (`DATE_SYNONYMS`/`findHeaderBySynonym`), so the two never disagree about
+ * which column is "the" date column. Null when there's no date column, or
+ * no row in it parses as a real date — never a guessed/fabricated range.
+ */
+function computeDateRange(result: CleaningResult): { start: string; end: string } | null {
+  const dateHeader = findHeaderBySynonym(result.headers, DATE_SYNONYMS);
+  if (!dateHeader) return null;
+
+  let start: string | null = null;
+  let end: string | null = null;
+  for (const row of [...result.cleanedRows, ...result.flaggedRows]) {
+    const parsed = parseDateValue(row.data[dateHeader] ?? '');
+    if (parsed === null) continue;
+    if (start === null || parsed < start) start = parsed;
+    if (end === null || parsed > end) end = parsed;
+  }
+  return start !== null && end !== null ? { start, end } : null;
+}
+
 interface MonthlyRevenueRow {
   month: string;
   revenue: number | null;
+}
+
+export interface MonthlyTotal {
+  month: string;
+  revenue: number | null;
+  expenses: number | null;
+}
+
+// Same month-grouping as the sales-trend KPI (monthKeyOf/DATE_SYNONYMS), but
+// covers both revenue and expenses in one pass for the dashboard's trend
+// charts. A month present in the date column but with no numeric value in a
+// given metric's column gets `null` for that metric, not a fabricated 0.
+function collectMonthlySeries(
+  result: CleaningResult,
+  dateHeader: string,
+  revenueHeader: string | null,
+  expenseHeader: string | null,
+): MonthlyTotal[] {
+  const allRows = [...result.cleanedRows, ...result.flaggedRows];
+  const revenueByMonth = new Map<string, number>();
+  const expensesByMonth = new Map<string, number>();
+  const monthsPresent = new Set<string>();
+
+  for (const row of allRows) {
+    const month = monthKeyOf(row.data[dateHeader] ?? '');
+    if (month === null) continue;
+    monthsPresent.add(month);
+
+    if (revenueHeader) {
+      const parsed = parseNumeric((row.data[revenueHeader] ?? '').trim());
+      if (parsed !== null) revenueByMonth.set(month, (revenueByMonth.get(month) ?? 0) + parsed);
+    }
+    if (expenseHeader) {
+      const parsed = parseNumeric((row.data[expenseHeader] ?? '').trim());
+      if (parsed !== null) expensesByMonth.set(month, (expensesByMonth.get(month) ?? 0) + parsed);
+    }
+  }
+
+  return Array.from(monthsPresent)
+    .sort()
+    .map((month) => ({
+      month,
+      revenue: revenueByMonth.has(month) ? roundTo(revenueByMonth.get(month) as number) : null,
+      expenses: expensesByMonth.has(month) ? roundTo(expensesByMonth.get(month) as number) : null,
+    }));
 }
 
 function collectMonthlyRevenueRows(
@@ -479,6 +579,8 @@ export function calculateKpis(result: CleaningResult): KpiCalculation {
     cleanedRowCount,
     flaggedRowCount,
     numericColumns: [] as string[],
+    dateRange: computeDateRange(result),
+    monthlySeries: [] as MonthlyTotal[],
   };
 
   if (consideredRows === 0) {
@@ -524,20 +626,38 @@ export function calculateKpis(result: CleaningResult): KpiCalculation {
   }
   addDerivedBusinessKpis(kpis, clarifications, numericStats, consideredRows);
 
+  const revenueCol = findBySynonym(numericStats, REVENUE_SYNONYMS);
+  const expenseCol = findBySynonym(numericStats, EXPENSE_SYNONYMS);
+
+  // Tag the generic column.*.total/average KPIs for the detected
+  // revenue/expense columns so the dashboard can group them without parsing
+  // labels or the (arbitrary, file-supplied) column name itself.
+  for (const k of kpis) {
+    if (revenueCol && (k.key === `column.${revenueCol.header}.total` || k.key === `column.${revenueCol.header}.average`)) {
+      k.category = 'revenue';
+    } else if (expenseCol && (k.key === `column.${expenseCol.header}.total` || k.key === `column.${expenseCol.header}.average`)) {
+      k.category = 'expenses';
+    }
+  }
+
   // Trend needs its own revenue-column lookup (not just the total/margin
   // path above) because it also needs the raw per-row date cells, which
   // addDerivedBusinessKpis doesn't carry. Mirrors that function's existing
   // "no revenue column -> nothing to do, no clarification" behavior.
-  const revenueColForTrend = findBySynonym(numericStats, REVENUE_SYNONYMS);
-  if (revenueColForTrend) {
-    addSalesTrendKpi(kpis, clarifications, result, revenueColForTrend, consideredRows);
+  if (revenueCol) {
+    addSalesTrendKpi(kpis, clarifications, result, revenueCol, consideredRows);
   }
+
+  const dateHeaderForSeries = findHeaderBySynonym(result.headers, DATE_SYNONYMS);
+  const monthlySeries = dateHeaderForSeries
+    ? collectMonthlySeries(result, dateHeaderForSeries, revenueCol?.header ?? null, expenseCol?.header ?? null)
+    : [];
 
   return {
     status: clarifications.length > 0 ? 'needs_clarification' : 'ok',
     kpis,
     clarificationsNeeded: clarifications,
-    summary: { ...summaryBase, numericColumns: numericStats.map((s) => s.header) },
+    summary: { ...summaryBase, numericColumns: numericStats.map((s) => s.header), monthlySeries },
   };
 }
 

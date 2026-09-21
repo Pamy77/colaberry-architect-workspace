@@ -43,7 +43,7 @@ describe('GET /api/kpis (dashboard data)', () => {
     expect(new Date(res.body.generatedAt).toString()).not.toBe('Invalid Date');
     expect(res.body.summary.numericColumns).toEqual(expect.arrayContaining(['revenue', 'expenses']));
 
-    const revenueTotal = res.body.kpis.find((k: { key: string }) => k.key === 'business.revenue.total');
+    const revenueTotal = res.body.kpis.find((k: { key: string }) => k.key === 'column.revenue.total');
     expect(revenueTotal.value).toBe(2200);
     expect(revenueTotal.evidenceLevel).toBe('high');
   });

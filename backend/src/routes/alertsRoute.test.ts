@@ -24,7 +24,7 @@ function calc(kpis: Kpi[]): KpiCalculation {
     status: 'ok',
     kpis,
     clarificationsNeeded: [],
-    summary: { totalDataRows: 0, cleanedRowCount: 0, flaggedRowCount: 0, numericColumns: [] },
+    summary: { totalDataRows: 0, cleanedRowCount: 0, flaggedRowCount: 0, numericColumns: [], dateRange: null, monthlySeries: [] },
   };
 }
 

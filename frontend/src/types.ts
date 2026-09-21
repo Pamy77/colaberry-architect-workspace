@@ -21,6 +21,8 @@ export interface Kpi {
     rowsUsed: number;
     coverage: number;
   };
+  /** Set on the revenue/expense column KPIs so the dashboard can group them. */
+  category?: 'revenue' | 'expenses';
 }
 
 export interface Clarification {
@@ -29,11 +31,19 @@ export interface Clarification {
   column: string | null;
 }
 
+export interface MonthlyTotal {
+  month: string;
+  revenue: number | null;
+  expenses: number | null;
+}
+
 export interface KpiSummary {
   totalDataRows: number;
   cleanedRowCount: number;
   flaggedRowCount: number;
   numericColumns: string[];
+  dateRange: { start: string; end: string } | null;
+  monthlySeries: MonthlyTotal[];
 }
 
 export type DashboardData =

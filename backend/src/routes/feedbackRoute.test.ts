@@ -23,7 +23,7 @@ function calc(): KpiCalculation {
       },
     ],
     clarificationsNeeded: [],
-    summary: { totalDataRows: 5, cleanedRowCount: 5, flaggedRowCount: 0, numericColumns: ['revenue'] },
+    summary: { totalDataRows: 5, cleanedRowCount: 5, flaggedRowCount: 0, numericColumns: ['revenue'], dateRange: null, monthlySeries: [] },
   };
 }
 

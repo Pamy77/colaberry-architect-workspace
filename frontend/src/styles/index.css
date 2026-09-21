@@ -1,8 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@600;700&display=swap');
+
 :root {
+  color-scheme: dark;
+
+  --color-bg: #101c17;
+  --color-surface: #1e2f28;
+  --color-surface-raised: #24392f;
+  --color-border: #2d4238;
+  --color-text: #f2ead9;
+  --color-muted: #a6b6a9;
+
+  --color-accent: #d9a441;
+  --color-accent-bg: rgba(217, 164, 65, 0.14);
+  --color-revenue: #6fae8c;
+  --color-revenue-bg: rgba(111, 174, 140, 0.16);
+  --color-expense: #a4575b;
+  --color-expense-bg: rgba(164, 87, 91, 0.14);
+  --color-warning: #d9a441;
+  --color-warning-bg: rgba(217, 164, 65, 0.14);
+
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   line-height: 1.5;
-  color: #1a1f2b;
-  background: #f7f8fa;
+  color: var(--color-text);
+  background: var(--color-bg);
 }
 
 * {
@@ -11,6 +31,7 @@
 
 body {
   margin: 0;
+  background: var(--color-bg);
 }
 
 .dashboard {
@@ -20,49 +41,79 @@ body {
 }
 
 .dashboard h1 {
+  font-family: 'Lora', Georgia, serif;
   font-size: 1.5rem;
-  margin: 0 0 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 1.25rem;
+  color: #6fae8c;
+}
+
+/* Same toned-down green as the title -- a lighter weight is enough to set
+   the data's own date range apart from the fixed "KPI Dashboard" name. */
+.dashboard__daterange {
+  font-weight: 600;
 }
 
 .dashboard__status,
 .dashboard__empty {
-  color: #56606f;
+  color: var(--color-muted);
 }
 
 .dashboard__meta {
-  color: #56606f;
+  color: var(--color-muted);
   font-size: 0.9rem;
   margin: 0 0 1.5rem;
 }
 
+.dashboard__meta strong {
+  color: var(--color-text);
+}
+
 .dashboard__error {
-  border: 1px solid #e2b4b4;
-  background: #fdf3f3;
+  border: 1px solid var(--color-expense);
+  background: var(--color-expense-bg);
   border-radius: 8px;
   padding: 1rem 1.25rem;
+  color: var(--color-text);
+}
+
+.dashboard__error button,
+.dashboard__feedback-error {
+  color: var(--color-text);
 }
 
 .dashboard__error button {
   margin-top: 0.5rem;
   padding: 0.4rem 0.9rem;
-  border: 1px solid #b23b3b;
-  background: #fff;
-  color: #b23b3b;
+  border: 1px solid var(--color-expense);
+  background: transparent;
+  color: var(--color-expense);
   border-radius: 6px;
   cursor: pointer;
 }
 
+.dashboard__feedback-error {
+  border: 1px solid var(--color-expense);
+  background: var(--color-expense-bg);
+  border-radius: 8px;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
 .dashboard__clarifications {
-  border: 1px solid #e6d5a8;
-  background: #fdf9ee;
+  border: 1px solid var(--color-warning);
+  background: var(--color-warning-bg);
   border-radius: 8px;
   padding: 0.75rem 1.25rem;
   margin-bottom: 1.5rem;
+  color: var(--color-text);
 }
 
 .dashboard__clarifications h2 {
   font-size: 1rem;
   margin: 0.25rem 0 0.5rem;
+  color: var(--color-warning);
 }
 
 .kpi-grid {
@@ -71,9 +122,25 @@ body {
   gap: 1rem;
 }
 
+.kpi-grid + .kpi-grid {
+  margin-top: 1rem;
+}
+
+/* Fixed 3 columns so the revenue/expense/profit rows line up exactly as
+   requested, rather than auto-filling and reflowing the row boundaries. */
+.kpi-grid--core {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 640px) {
+  .kpi-grid--core {
+    grid-template-columns: 1fr;
+  }
+}
+
 .kpi-card {
-  border: 1px solid #e3e6eb;
-  background: #fff;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
   border-radius: 10px;
   padding: 1rem 1.1rem;
 }
@@ -81,7 +148,7 @@ body {
 .kpi-card__label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #56606f;
+  color: var(--color-muted);
   margin: 0 0 0.35rem;
 }
 
@@ -89,6 +156,17 @@ body {
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0 0 0.5rem;
+  color: var(--color-text);
+}
+
+/* Total revenue/expenses echo their trend chart's color, so the number and
+   its chart read as the same signal at a glance. */
+.kpi-card__value--revenue {
+  color: var(--color-revenue);
+}
+
+.kpi-card__value--expense {
+  color: var(--color-expense);
 }
 
 .kpi-card__evidence {
@@ -100,22 +178,216 @@ body {
 }
 
 .kpi-card__evidence--high {
-  background: #e4f4ea;
-  color: #1f7a44;
+  background: var(--color-revenue-bg);
+  color: var(--color-revenue);
 }
 
 .kpi-card__evidence--medium {
-  background: #fbf1dd;
-  color: #8a5a12;
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
 }
 
 .kpi-card__evidence--low {
-  background: #eceef1;
-  color: #56606f;
+  background: rgba(149, 162, 180, 0.16);
+  color: var(--color-muted);
 }
 
 .kpi-card__note {
   font-size: 0.78rem;
-  color: #56606f;
+  color: var(--color-muted);
   margin: 0.5rem 0 0;
+}
+
+.kpi-card__feedback-prompt {
+  margin-top: 0.6rem;
+}
+
+.kpi-card__feedback-prompt p {
+  color: var(--color-text);
+  margin: 0 0 0.5rem;
+}
+
+.kpi-card__feedback-buttons {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.kpi-card__feedback-given {
+  color: var(--color-muted);
+  margin-top: 0.6rem;
+}
+
+.kpi-card__feedback-given strong {
+  color: var(--color-text);
+}
+
+button {
+  font-family: inherit;
+}
+
+.kpi-card__feedback-buttons button,
+.kpi-card__undo,
+.satisfaction-checkin__options button {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  border-radius: 6px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.kpi-card__feedback-buttons button:hover,
+.kpi-card__undo:hover,
+.satisfaction-checkin__options button:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.kpi-card__feedback-buttons button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.kpi-card__feedback-buttons .kpi-card__btn--accurate {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.trend-chart {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+}
+
+.trend-chart__title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  margin: 0 0 0.75rem;
+}
+
+.trend-chart__svg {
+  width: 100%;
+  height: 140px;
+  display: block;
+}
+
+.trend-chart__labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.25rem;
+  margin-top: 0.4rem;
+}
+
+.trend-chart__label {
+  font-size: 0.68rem;
+  color: var(--color-muted);
+  flex: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.trend-chart__empty {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.upload-form {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.upload-form h2 {
+  font-size: 1.05rem;
+  margin: 0 0 0.85rem;
+  color: var(--color-text);
+}
+
+.upload-form__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+
+.upload-form__controls input[type='file']::file-selector-button,
+.upload-form__controls input[type='file']::-webkit-file-upload-button {
+  background: var(--color-bg);
+  color: var(--color-expense);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 0.3rem 0.7rem;
+  margin-right: 0.6rem;
+  font-family: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.upload-form__controls input[type='file']::file-selector-button:hover,
+.upload-form__controls input[type='file']::-webkit-file-upload-button:hover {
+  border-color: var(--color-expense);
+}
+
+.upload-form__submit {
+  background: var(--color-bg);
+  color: var(--color-expense);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.upload-form__submit:hover {
+  border-color: var(--color-expense);
+}
+
+.upload-form__submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.upload-form__success {
+  color: var(--color-revenue);
+  margin: 0.75rem 0 0;
+}
+
+.upload-form__success strong {
+  color: var(--color-text);
+}
+
+.upload-form__error {
+  border: 1px solid var(--color-expense);
+  background: var(--color-expense-bg);
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  margin-top: 0.75rem;
+  color: var(--color-text);
+}
+
+.satisfaction-checkin {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+
+.satisfaction-checkin__options {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.6rem;
+}
+
+.satisfaction-checkin__error {
+  color: var(--color-expense);
+  margin-top: 0.5rem;
 }

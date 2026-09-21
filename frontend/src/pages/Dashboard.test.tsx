@@ -68,7 +68,102 @@ const OK_DATA: DashboardData = {
     },
   ],
   clarificationsNeeded: [],
-  summary: { totalDataRows: 2, cleanedRowCount: 2, flaggedRowCount: 0, numericColumns: ['revenue'] },
+  summary: {
+    totalDataRows: 2,
+    cleanedRowCount: 2,
+    flaggedRowCount: 0,
+    numericColumns: ['revenue'],
+    dateRange: { start: '2026-02-02', end: '2026-06-29' },
+    monthlySeries: [
+      { month: '2026-02', revenue: 1000, expenses: 600 },
+      { month: '2026-06', revenue: 1200, expenses: 700 },
+    ],
+  },
+};
+
+// Full core set (revenue/expense totals+averages, profit, margin, sales
+// trend) plus one "other" KPI (a non-revenue/expense numeric column), used
+// to verify the requested 3x3 row grouping and the "other" fallback bucket.
+const GRID_DATA: DashboardData = {
+  ...OK_DATA,
+  kpis: [
+    {
+      key: 'column.revenue.total',
+      label: 'Total revenue',
+      value: 2200,
+      unit: 'currency',
+      evidenceLevel: 'high',
+      evidenceNote: 'note',
+      basis: { column: 'revenue', rowsConsidered: 2, rowsUsed: 2, coverage: 1 },
+      category: 'revenue',
+    },
+    {
+      key: 'column.revenue.average',
+      label: 'Average revenue',
+      value: 1100,
+      unit: 'currency',
+      evidenceLevel: 'high',
+      evidenceNote: 'note',
+      basis: { column: 'revenue', rowsConsidered: 2, rowsUsed: 2, coverage: 1 },
+      category: 'revenue',
+    },
+    {
+      key: 'column.expenses.total',
+      label: 'Total expenses',
+      value: 1300,
+      unit: 'currency',
+      evidenceLevel: 'high',
+      evidenceNote: 'note',
+      basis: { column: 'expenses', rowsConsidered: 2, rowsUsed: 2, coverage: 1 },
+      category: 'expenses',
+    },
+    {
+      key: 'column.expenses.average',
+      label: 'Average expenses',
+      value: 650,
+      unit: 'currency',
+      evidenceLevel: 'high',
+      evidenceNote: 'note',
+      basis: { column: 'expenses', rowsConsidered: 2, rowsUsed: 2, coverage: 1 },
+      category: 'expenses',
+    },
+    {
+      key: 'business.profit.gross',
+      label: 'Gross profit',
+      value: 900,
+      unit: 'currency',
+      evidenceLevel: 'high',
+      evidenceNote: 'note',
+      basis: { column: null, rowsConsidered: 2, rowsUsed: 2, coverage: 1 },
+    },
+    {
+      key: 'business.margin.gross',
+      label: 'Gross margin',
+      value: 0.4,
+      unit: 'ratio',
+      evidenceLevel: 'high',
+      evidenceNote: 'note',
+      basis: { column: null, rowsConsidered: 2, rowsUsed: 2, coverage: 1 },
+    },
+    {
+      key: 'business.revenue.trend.momAvg',
+      label: 'Sales trend (avg. month-over-month revenue change)',
+      value: 0.1,
+      unit: 'ratio',
+      evidenceLevel: 'high',
+      evidenceNote: 'note',
+      basis: { column: 'revenue', rowsConsidered: 2, rowsUsed: 2, coverage: 1 },
+    },
+    {
+      key: 'column.qty.total',
+      label: 'Total qty',
+      value: 12,
+      unit: 'number',
+      evidenceLevel: 'high',
+      evidenceNote: 'note',
+      basis: { column: 'qty', rowsConsidered: 2, rowsUsed: 2, coverage: 1 },
+    },
+  ],
 };
 
 beforeEach(() => {
@@ -87,6 +182,66 @@ beforeEach(() => {
 });
 
 describe('Dashboard', () => {
+  it('shows the uploaded data\'s date range in the header when available', async () => {
+    fetchKpisMock.mockResolvedValue(OK_DATA);
+
+    render(<Dashboard />);
+
+    const heading = await screen.findByRole('heading', { level: 1 });
+    expect(heading.textContent).toBe('KPI Dashboard – Feb to Jun 2026');
+    expect(heading.querySelector('.dashboard__daterange')).toBeInTheDocument();
+  });
+
+  it('falls back to a plain header when no date range is available', async () => {
+    fetchKpisMock.mockResolvedValue({
+      ...OK_DATA,
+      summary: { ...OK_DATA.summary, dateRange: null },
+    });
+
+    render(<Dashboard />);
+
+    expect(await screen.findByRole('heading', { name: 'KPI Dashboard' })).toBeInTheDocument();
+  });
+
+  it('groups KPIs into the requested 3x3 rows: revenue, expenses, then profit/margin/trend', async () => {
+    fetchKpisMock.mockResolvedValue(GRID_DATA);
+
+    const { container } = render(<Dashboard />);
+    await screen.findByText('Total revenue');
+
+    const coreItems = Array.from(
+      container.querySelectorAll('.kpi-grid--core .kpi-card__label, .kpi-grid--core .trend-chart__title'),
+    ).map((el) => el.textContent);
+
+    expect(coreItems).toEqual([
+      'Total revenue',
+      'Average revenue',
+      'Revenue trend',
+      'Total expenses',
+      'Average expenses',
+      'Expense trend',
+      'Gross profit',
+      'Gross margin',
+      'Sales trend (avg. month-over-month revenue change)',
+    ]);
+
+    // The extra "qty" column KPI isn't one of the nine core slots -- it
+    // still renders, just in its own section below, never dropped.
+    expect(screen.getByText('Total qty')).toBeInTheDocument();
+  });
+
+  it('renders a revenue and an expense trend chart below the KPI cards', async () => {
+    fetchKpisMock.mockResolvedValue(OK_DATA);
+
+    render(<Dashboard />);
+
+    expect(await screen.findByText('Revenue trend')).toBeInTheDocument();
+    expect(screen.getByText('Expense trend')).toBeInTheDocument();
+    // OK_DATA's monthlySeries has both Feb and Jun 2026 revenue points.
+    expect(screen.getAllByText('Feb 2026').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Jun 2026').length).toBeGreaterThan(0);
+  });
+
   it('renders KPI cards clearly when KPIs are available', async () => {
     fetchKpisMock.mockResolvedValue(OK_DATA);
 

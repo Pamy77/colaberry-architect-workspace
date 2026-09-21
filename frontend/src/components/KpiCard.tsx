@@ -41,6 +41,26 @@ export interface KpiCardProps {
   onUndo?: () => void;
 }
 
+// Revenue-column KPIs (total + average) echo the revenue trend chart's
+// color, and expense-column KPIs echo the expense trend chart's -- the
+// number and its chart read as the same signal at a glance.
+//
+// The derived business KPIs (gross profit, gross margin, sales trend) have
+// no column of their own to echo, and unlike a total/average they can
+// genuinely go negative (a loss, a shrinking margin, a declining trend) --
+// so instead of a fixed color they're signed: the same revenue-green reads
+// as "healthy" when the number is >= 0, the same expense-rose flags it when
+// it drops below 0. Reusing those two tokens keeps this meaningful rather
+// than decorative, instead of introducing a third color with no clear job.
+function valueColorClass(kpi: Kpi): string {
+  if (kpi.category === 'revenue') return ' kpi-card__value--revenue';
+  if (kpi.category === 'expenses') return ' kpi-card__value--expense';
+  if (kpi.key.startsWith('business.')) {
+    return kpi.value >= 0 ? ' kpi-card__value--revenue' : ' kpi-card__value--expense';
+  }
+  return '';
+}
+
 export function KpiCard({
   kpi,
   needsFeedback = false,
@@ -51,7 +71,7 @@ export function KpiCard({
   return (
     <article className="kpi-card" aria-label={kpi.label}>
       <h3 className="kpi-card__label">{kpi.label}</h3>
-      <p className="kpi-card__value">{FORMATTERS[kpi.unit](kpi.value)}</p>
+      <p className={`kpi-card__value${valueColorClass(kpi)}`}>{FORMATTERS[kpi.unit](kpi.value)}</p>
       <span className={`kpi-card__evidence kpi-card__evidence--${kpi.evidenceLevel}`}>
         {EVIDENCE_LABEL[kpi.evidenceLevel]}
       </span>
@@ -60,12 +80,14 @@ export function KpiCard({
       {needsFeedback && (
         <div className="kpi-card__feedback-prompt">
           <p>Was this insight accurate?</p>
-          <button type="button" onClick={() => onSubmitFeedback?.('accurate')}>
-            Accurate
-          </button>
-          <button type="button" onClick={() => onSubmitFeedback?.('inaccurate')}>
-            Inaccurate
-          </button>
+          <div className="kpi-card__feedback-buttons">
+            <button type="button" className="kpi-card__btn--accurate" onClick={() => onSubmitFeedback?.('accurate')}>
+              Accurate
+            </button>
+            <button type="button" onClick={() => onSubmitFeedback?.('inaccurate')}>
+              Inaccurate
+            </button>
+          </div>
         </div>
       )}
 

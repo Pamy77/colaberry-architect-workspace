@@ -7,10 +7,12 @@ import {
   type FeedbackRating,
 } from '../services/feedbackApi';
 import { InsightUndoApiError, undoInsightFeedback } from '../services/insightUndoApi';
-import type { DashboardData } from '../types';
+import type { DashboardData, Kpi, MonthlyTotal } from '../types';
 import { KpiCard } from '../components/KpiCard';
 import { UploadForm } from '../components/UploadForm';
 import { SatisfactionCheckin } from '../components/SatisfactionCheckin';
+import { TrendBarChart } from '../components/TrendBarChart';
+import { formatDateRangeLabel } from '../utils/dateFormat';
 
 /**
  * KPI dashboard (STORY-003 / REQ-004, extended STORY-007 / STORY-009 /
@@ -114,9 +116,14 @@ export function Dashboard() {
     void load();
   }, [load]);
 
+  const dateRangeLabel =
+    state.phase === 'ready' && state.data.status !== 'no_data'
+      ? formatDateRangeLabel(state.data.summary.dateRange)
+      : null;
+
   return (
     <main className="dashboard">
-      <h1>KPI Dashboard</h1>
+      <h1>KPI Dashboard{dateRangeLabel && <span className="dashboard__daterange"> – {dateRangeLabel}</span>}</h1>
 
       {/* Always visible, regardless of load state — the upload path
           (STORY-010 / REQ-018) never depends on the dashboard already
@@ -206,18 +213,92 @@ function DashboardBody({
         </section>
       )}
 
-      <section className="kpi-grid" aria-label="KPIs">
-        {data.kpis.map((kpi) => (
-          <KpiCard
-            key={kpi.key}
-            kpi={kpi}
-            needsFeedback={kpiKeysNeedingFeedback.includes(kpi.key)}
-            feedbackRating={feedbackByKpiKey[kpi.key] ?? null}
-            onSubmitFeedback={(rating) => onSubmitFeedback(kpi.key, rating)}
-            onUndo={() => onUndo(kpi.key)}
-          />
-        ))}
+      <KpiGrid
+        kpis={data.kpis}
+        monthlySeries={data.summary.monthlySeries}
+        kpiKeysNeedingFeedback={kpiKeysNeedingFeedback}
+        feedbackByKpiKey={feedbackByKpiKey}
+        onSubmitFeedback={onSubmitFeedback}
+        onUndo={onUndo}
+      />
+    </>
+  );
+}
+
+// Row 1: revenue total, revenue average, revenue trend chart.
+// Row 2: expense total, expense average, expense trend chart.
+// Row 3: gross profit, gross margin, sales trend.
+// Revenue/expense KPIs are matched by the backend's `category` tag rather
+// than by label or column name (that name is whatever the uploaded file
+// called it, e.g. "sales" instead of "revenue"). Anything that doesn't fit
+// one of those nine slots (a dataset with extra numeric columns beyond
+// revenue/expenses) still renders, just below in its own grid, so it's
+// never silently dropped.
+function KpiGrid({
+  kpis,
+  monthlySeries,
+  kpiKeysNeedingFeedback,
+  feedbackByKpiKey,
+  onSubmitFeedback,
+  onUndo,
+}: {
+  kpis: Kpi[];
+  monthlySeries: MonthlyTotal[];
+  kpiKeysNeedingFeedback: string[];
+  feedbackByKpiKey: Record<string, FeedbackRating>;
+  onSubmitFeedback: (kpiKey: string, rating: FeedbackRating) => void;
+  onUndo: (kpiKey: string) => void;
+}) {
+  const revenueTotal = kpis.find((k) => k.category === 'revenue' && k.key.endsWith('.total'));
+  const revenueAverage = kpis.find((k) => k.category === 'revenue' && k.key.endsWith('.average'));
+  const expenseTotal = kpis.find((k) => k.category === 'expenses' && k.key.endsWith('.total'));
+  const expenseAverage = kpis.find((k) => k.category === 'expenses' && k.key.endsWith('.average'));
+  const grossProfit = kpis.find((k) => k.key === 'business.profit.gross');
+  const grossMargin = kpis.find((k) => k.key === 'business.margin.gross');
+  const salesTrend = kpis.find((k) => k.key === 'business.revenue.trend.momAvg');
+
+  const coreKeys = new Set(
+    [revenueTotal, revenueAverage, expenseTotal, expenseAverage, grossProfit, grossMargin, salesTrend]
+      .filter((k): k is Kpi => k !== undefined)
+      .map((k) => k.key),
+  );
+  const otherKpis = kpis.filter((k) => !coreKeys.has(k.key));
+
+  function card(kpi: Kpi | undefined) {
+    if (!kpi) return null;
+    return (
+      <KpiCard
+        key={kpi.key}
+        kpi={kpi}
+        needsFeedback={kpiKeysNeedingFeedback.includes(kpi.key)}
+        feedbackRating={feedbackByKpiKey[kpi.key] ?? null}
+        onSubmitFeedback={(rating) => onSubmitFeedback(kpi.key, rating)}
+        onUndo={() => onUndo(kpi.key)}
+      />
+    );
+  }
+
+  return (
+    <>
+      <section className="kpi-grid kpi-grid--core" aria-label="KPIs">
+        {card(revenueTotal)}
+        {card(revenueAverage)}
+        <TrendBarChart title="Revenue trend" data={monthlySeries} metric="revenue" color="#6fae8c" />
+
+        {card(expenseTotal)}
+        {card(expenseAverage)}
+        <TrendBarChart title="Expense trend" data={monthlySeries} metric="expenses" color="#a4575b" />
+
+        {card(grossProfit)}
+        {card(grossMargin)}
+        {card(salesTrend)}
       </section>
+
+      {otherKpis.length > 0 && (
+        <section className="kpi-grid" aria-label="Other KPIs">
+          {otherKpis.map((kpi) => card(kpi))}
+        </section>
+      )}
     </>
   );
 }

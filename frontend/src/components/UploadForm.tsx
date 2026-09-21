@@ -64,7 +64,12 @@ export function UploadForm({ onUploaded }: UploadFormProps) {
           onChange={handleFileChange}
           disabled={state.phase === 'uploading'}
         />
-        <button type="button" onClick={() => void handleUpload()} disabled={!file || state.phase === 'uploading'}>
+        <button
+          type="button"
+          className="upload-form__submit"
+          onClick={() => void handleUpload()}
+          disabled={!file || state.phase === 'uploading'}
+        >
           {state.phase === 'uploading' ? 'Uploading…' : 'Upload'}
         </button>
       </div>

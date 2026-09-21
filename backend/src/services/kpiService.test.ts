@@ -38,11 +38,29 @@ describe('calculateKpis', () => {
     expect(calc.clarificationsNeeded).toEqual([]);
     expect(calc.summary.numericColumns).toEqual(['revenue', 'expenses']);
 
-    expect(byKey(calc.kpis, 'business.revenue.total')?.value).toBe(3000);
-    expect(byKey(calc.kpis, 'business.expenses.total')?.value).toBe(1800);
+    // "Total revenue"/"Total expenses" (column.*, no "of") are the sole
+    // totals now — the old business.revenue.total/business.expenses.total
+    // cards were removed as exact duplicates of these (same column, same sum).
+    expect(byKey(calc.kpis, 'column.revenue.total')?.value).toBe(3000);
+    expect(byKey(calc.kpis, 'column.revenue.total')?.label).toBe('Total revenue');
+    expect(byKey(calc.kpis, 'column.revenue.average')?.label).toBe('Average revenue');
+    expect(byKey(calc.kpis, 'column.expenses.total')?.value).toBe(1800);
+    expect(byKey(calc.kpis, 'column.expenses.total')?.label).toBe('Total expenses');
+    expect(byKey(calc.kpis, 'column.expenses.average')?.label).toBe('Average expenses');
+    expect(byKey(calc.kpis, 'business.revenue.total')).toBeUndefined();
+    expect(byKey(calc.kpis, 'business.expenses.total')).toBeUndefined();
     expect(byKey(calc.kpis, 'business.profit.gross')?.value).toBe(1200);
     expect(byKey(calc.kpis, 'business.margin.gross')?.value).toBe(0.4);
     expect(byKey(calc.kpis, 'column.revenue.average')?.value).toBe(1000);
+
+    // The revenue/expense column KPIs are tagged for the dashboard's
+    // grouped layout; every other KPI (profit, margin) is untagged.
+    expect(byKey(calc.kpis, 'column.revenue.total')?.category).toBe('revenue');
+    expect(byKey(calc.kpis, 'column.revenue.average')?.category).toBe('revenue');
+    expect(byKey(calc.kpis, 'column.expenses.total')?.category).toBe('expenses');
+    expect(byKey(calc.kpis, 'column.expenses.average')?.category).toBe('expenses');
+    expect(byKey(calc.kpis, 'business.profit.gross')?.category).toBeUndefined();
+    expect(byKey(calc.kpis, 'business.margin.gross')?.category).toBeUndefined();
 
     for (const kpi of calc.kpis) {
       expect(kpi.evidenceLevel).toBe('high');
@@ -71,7 +89,9 @@ describe('calculateKpis', () => {
 
     expect(calc.status).toBe('ok');
     expect(byKey(calc.kpis, 'column.qty.total')?.value).toBe(12);
+    expect(byKey(calc.kpis, 'column.qty.total')?.label).toBe('Total qty');
     expect(byKey(calc.kpis, 'column.qty.average')?.value).toBe(6);
+    expect(byKey(calc.kpis, 'column.qty.total')?.category).toBeUndefined();
     expect(calc.kpis.some((k) => k.key.startsWith('business.'))).toBe(false);
   });
 
@@ -92,7 +112,7 @@ describe('calculateKpis', () => {
     const lowCoverage = calc.clarificationsNeeded.find((c) => c.code === 'low_coverage');
     expect(lowCoverage?.column).toBe('revenue');
     // The KPI is still computed, but marked low-evidence rather than hidden.
-    const revenueTotal = byKey(calc.kpis, 'business.revenue.total');
+    const revenueTotal = byKey(calc.kpis, 'column.revenue.total');
     expect(revenueTotal?.value).toBe(2200);
     expect(revenueTotal?.evidenceLevel).toBe('low');
     expect(revenueTotal?.basis.coverage).toBeCloseTo(2 / 3, 4);
@@ -166,7 +186,7 @@ describe('calculateKpis', () => {
 
     const calc = calculateKpis(result);
 
-    expect(byKey(calc.kpis, 'business.revenue.total')?.value).toBe(3000);
+    expect(byKey(calc.kpis, 'column.revenue.total')?.value).toBe(3000);
     expect(byKey(calc.kpis, 'business.profit.gross')).toBeUndefined();
     const missing = calc.clarificationsNeeded.find((c) => c.code === 'missing_kpi_inputs');
     expect(missing?.question).toMatch(/expenses/i);
@@ -209,8 +229,89 @@ describe('calculateKpis', () => {
     );
 
     const calc = calculateKpis(result);
-    expect(byKey(calc.kpis, 'business.revenue.total')?.value).toBe(3000.5);
+    expect(byKey(calc.kpis, 'column.revenue.total')?.value).toBe(3000.5);
     expect(calc.status).toBe('ok');
+  });
+});
+
+describe('date range summary (calc.summary.dateRange)', () => {
+  it('reports the min and max date across cleaned and flagged rows (happy path)', () => {
+    const result = makeResult(
+      ['date', 'revenue'],
+      [
+        { date: '2026-02-02', revenue: '1000' },
+        { date: '2026-04-06', revenue: '1200' },
+      ],
+      [{ data: { date: '2026-06-29', revenue: '' }, reason: 'One or more cells are empty' }],
+    );
+
+    const calc = calculateKpis(result);
+
+    expect(calc.summary.dateRange).toEqual({ start: '2026-02-02', end: '2026-06-29' });
+  });
+
+  it('is null when there is no date-like column', () => {
+    const result = makeResult(
+      ['widget', 'qty'],
+      [{ widget: 'A', qty: '5' }],
+    );
+
+    const calc = calculateKpis(result);
+
+    expect(calc.summary.dateRange).toBeNull();
+  });
+
+  it('is null when the date column has no parseable values', () => {
+    const result = makeResult(
+      ['date', 'revenue'],
+      [
+        { date: 'n/a', revenue: '1000' },
+        { date: '', revenue: '1200' },
+      ],
+    );
+
+    const calc = calculateKpis(result);
+
+    expect(calc.summary.dateRange).toBeNull();
+  });
+});
+
+describe('monthly trend series (calc.summary.monthlySeries)', () => {
+  it('groups revenue and expenses by calendar month, sorted ascending (happy path)', () => {
+    const result = makeResult(
+      ['date', 'revenue', 'expenses'],
+      [
+        { date: '2026-02-02', revenue: '1000', expenses: '400' },
+        { date: '2026-02-16', revenue: '500', expenses: '200' },
+        { date: '2026-01-05', revenue: '800', expenses: '300' },
+      ],
+    );
+
+    const calc = calculateKpis(result);
+
+    expect(calc.summary.monthlySeries).toEqual([
+      { month: '2026-01', revenue: 800, expenses: 300 },
+      { month: '2026-02', revenue: 1500, expenses: 600 },
+    ]);
+  });
+
+  it('gives a month null for a metric it has no usable value for, rather than fabricating 0', () => {
+    const result = makeResult(
+      ['date', 'revenue', 'expenses'],
+      [{ date: '2026-03-01', revenue: '1000', expenses: '' }],
+    );
+
+    const calc = calculateKpis(result);
+
+    expect(calc.summary.monthlySeries).toEqual([{ month: '2026-03', revenue: 1000, expenses: null }]);
+  });
+
+  it('is empty when there is no date-like column', () => {
+    const result = makeResult(['revenue', 'expenses'], [{ revenue: '1000', expenses: '400' }]);
+
+    const calc = calculateKpis(result);
+
+    expect(calc.summary.monthlySeries).toEqual([]);
   });
 });
 
