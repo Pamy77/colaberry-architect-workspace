@@ -14,9 +14,9 @@ interactions (Trust criterion #3).
   satisfaction-measurement mechanism exists anywhere in this codebase, and
   "increases" requires a real before/after measurement from real users,
   which this walking skeleton has neither the users nor the baseline for.
-  **Not built. Documented here as an explicit, permanent gap** — a later
-  real UX-research or in-product survey mechanism would be a separate
-  story, not something this directive fakes with a fabricated metric.
+  **Not built at the time. Documented here as an explicit gap.**
+  **Revisited 2026-09-21** — see "Satisfaction trend mechanism" below for
+  what was actually built and why it's honest, not a fabricated metric.
 - **"It is simple and intuitive" is a subjective UX judgment a test cannot
   assert pass/fail on.** Operationalized instead as a concrete, testable
   checklist (below) — this is the tested proxy; it is not a claim that the
@@ -45,6 +45,79 @@ A checklist, each item concretely testable, not a vibe:
    plain text, never a raw error code).
 4. **Basic accessibility**: a labeled file input, a real `<button>` (native
    keyboard operability, no custom click-handling on a `<div>`).
+
+## Satisfaction trend mechanism (added 2026-09-21 — closing criterion #2 for real)
+
+On 2026-09-19 this directive flagged criterion #2 ("user satisfaction
+increases") as untestable and left it unbuilt rather than faked. Revisited
+2026-09-21, with the project owner, to build a real mechanism instead of
+leaving it permanently open. The reframing, agreed before writing any code:
+
+**What "tested" means here is different from every other criterion in this
+project, and that difference is deliberate.** Every other acceptance
+criterion this session has been about proving a calculation or a flow is
+*correct*. This one cannot honestly be "the real number went up" — there is
+no real usage history yet for that to be true or false about. What CAN be
+proven correct is the *mechanism*: given a real sequence of satisfaction
+check-ins over time, does the system correctly compute whether the more
+recent ones average higher, lower, or the same as the earlier ones. That
+computation is exactly as testable as any other calculation in this
+codebase (the KPI evidence-level math, the alert-threshold math), proven
+with synthetic test numbers the same way those are.
+
+**The guardrail, non-negotiable:** the real, running `satisfactionStore` is
+never seeded with fabricated ratings to manufacture an "increased" result.
+It starts genuinely empty, same as every other store in this codebase. Test
+fixtures proving the trend math is correct live only in test files, never
+in a script or migration that touches the real store. Until at least two
+real check-ins exist, the honest answer is `insufficient_data` — the same
+"say so plainly, don't guess" pattern already used everywhere else
+(`no_data`, `no_actions`, `needs_clarification`). The criterion is marked
+`true` in `.colaberry/progress.json` because the *mechanism* is real and
+provably correct, not because a fabricated number says "increased."
+
+### Data model
+
+```
+SatisfactionRating = 'great' | 'ok' | 'not_great'   (scored 3 / 2 / 1 — a
+  3-point scale kept as 3 points, not stretched into a false-precision
+  5-point average)
+
+SatisfactionCheckin = { id, rating, submittedAt }
+```
+
+`satisfactionStore.ts` — append-only, single global in-memory list, same
+walking-skeleton pattern as `decisionLog.ts`/`feedbackStore.ts`. No initial
+seed data (the guardrail above, enforced by construction: there is no code
+path that writes to this store except a real check-in submission).
+
+### Trend calculation
+
+Chronological split, not a calendar-window split: the earlier half of all
+check-ins so far vs. the later half, by count, not by date range. A
+calendar split (e.g. "this week vs last week") would report
+`insufficient_data` indefinitely for a lightly-used walking skeleton even
+with several real check-ins on the same day; a count-based split gives a
+meaningful, honest answer as soon as there are enough check-ins to say
+anything at all. Documented choice, not a hidden one.
+
+- Fewer than 2 total check-ins → `insufficient_data`.
+- 2 or more → split into first-half / second-half by count, average each
+  half's numeric score, compare: later average higher → `increased`; lower
+  → `decreased`; equal → `flat`.
+
+### Inputs (added)
+
+- `backend/src/services/satisfactionStore.ts` — record + list + reset seam.
+- `backend/src/services/satisfactionService.ts` — `recordCheckin` and
+  `computeSatisfactionTrend`.
+- `backend/src/routes/satisfactionRoute.ts` / `satisfactionContract.ts` —
+  `POST /api/satisfaction/checkin`, `GET /api/satisfaction/trend`.
+- `frontend/src/services/satisfactionApi.ts` — fetch client, same
+  timeout+retry shape as every other client in this codebase.
+- `frontend/src/components/SatisfactionCheckin.tsx` (new) — three quiet
+  buttons (🙂 Great / 😐 OK / 🙁 Not great), placed after the KPI content
+  on `Dashboard.tsx`, not competing with the primary upload/KPI focus.
 
 ## What "logs user interactions" means (Trust criterion #3)
 
@@ -107,4 +180,14 @@ fact.
   `kpiApi.test.ts`/`feedbackApi.test.ts` already established.
 - `uiInteractionRoute.test.ts`: `POST /api/ui/interactions` logs the
   event with a timestamp; a malformed body doesn't crash the endpoint.
+- `satisfactionService.test.ts`: fewer than 2 check-ins → `insufficient_data`;
+  a synthetic sequence where later ratings average higher than earlier ones
+  → `increased`; lower → `decreased`; equal → `flat`; every check-in logs a
+  Trust line with a timestamp.
+- `satisfactionRoute.test.ts`: `POST /api/satisfaction/checkin` records and
+  logs; an invalid rating is a 400, not silently accepted; `GET
+  /api/satisfaction/trend` reflects real recorded state, starting at
+  `insufficient_data` with nothing recorded — never a fabricated trend.
+- `SatisfactionCheckin.test.tsx`: renders three plain-language options;
+  clicking one submits the corresponding rating.
 - `tsc --noEmit` (backend + frontend) clean; no regressions.
