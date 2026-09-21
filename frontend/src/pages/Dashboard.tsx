@@ -9,6 +9,7 @@ import {
 import type { DashboardData } from '../types';
 import { KpiCard } from '../components/KpiCard';
 import { UploadForm } from '../components/UploadForm';
+import { SatisfactionCheckin } from '../components/SatisfactionCheckin';
 
 /**
  * KPI dashboard (STORY-003 / REQ-004, extended STORY-007 / STORY-009 /
@@ -135,6 +136,11 @@ export function Dashboard() {
           }}
         />
       )}
+
+      {/* Quiet, not competing with the primary upload/KPI content — see
+          the "Satisfaction trend mechanism" section of
+          directives/12-ui-simplicity.md. */}
+      <SatisfactionCheckin />
     </main>
   );
 }
