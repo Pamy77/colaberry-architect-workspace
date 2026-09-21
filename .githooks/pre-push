@@ -1,12 +1,27 @@
 #!/bin/bash
-# Git pre-push hook: blocks the push if backend/frontend typecheck or tests fail.
-# Delegates all real work to scripts/headless_verify.sh - this file only wires
-# that script into git's push lifecycle.
+# Git pre-push hook: blocks the push if the PROGRESS.md gate is violated, or if
+# backend/frontend typecheck or tests fail. Delegates all real work to
+# scripts/checkProgressGate.sh and scripts/headless_verify.sh - this file only
+# wires them into git's push lifecycle, in cheapest-check-first order.
 #
 # One-time setup per clone: git config core.hooksPath .githooks
 set -uo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+# git pipes "<local ref> <local sha1> <remote ref> <remote sha1>" lines on
+# stdin. checkProgressGate.sh reads them directly (inherits this stdin); it
+# must run before anything else consumes this same stream.
+echo "pre-push: checking the PROGRESS.md gate..."
+"$REPO_ROOT/scripts/checkProgressGate.sh"
+GATE_STATUS=$?
+
+if [ "$GATE_STATUS" -ne 0 ]; then
+  echo ""
+  echo "pre-push: BLOCKED - a commit above touches backend/frontend/scripts/nginx/directives without touching PROGRESS.md."
+  echo "Add the missing PROGRESS.md entry (amend, or a follow-up commit) before pushing."
+  exit "$GATE_STATUS"
+fi
 
 echo "pre-push: running scripts/headless_verify.sh before allowing push..."
 "$REPO_ROOT/scripts/headless_verify.sh"

@@ -1,0 +1,80 @@
+name: Push Review
+
+# Fires on a push to any branch. Reviews exactly what that push changed and
+# always leaves a commit comment with the result - including "found nothing"
+# and "the review itself failed" - never a silent pass or a silent failure.
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # required to post a commit comment via the REST API below
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0   # full history: needed to diff arbitrary push ranges, incl. multi-commit pushes
+
+      - name: Determine what this push actually changed
+        id: range
+        run: |
+          before="${{ github.event.before }}"
+          after="${{ github.event.after }}"
+          zero="0000000000000000000000000000000000000000"
+
+          if [ "$before" != "$zero" ] && git cat-file -e "$before" 2>/dev/null; then
+            echo "range=${before}..${after}" >> "$GITHUB_OUTPUT"
+          elif git cat-file -e "${after}~1" 2>/dev/null; then
+            # New branch, or a force-push whose old tip we no longer have: fall
+            # back to reviewing just the tip commit instead of the whole branch.
+            echo "range=${after}~1..${after}" >> "$GITHUB_OUTPUT"
+          else
+            # The very first commit in the repo has no parent either.
+            echo "range=${after}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Claude review
+        id: claude
+        continue-on-error: true
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            PUSHED RANGE: ${{ steps.range.outputs.range }}
+
+            Run `git diff ${{ steps.range.outputs.range }}` yourself (already checked out)
+            to see exactly what this push changed, then review it with a focus on:
+            - Code quality and best practices
+            - Potential bugs or issues
+            - Security implications (secrets, injection, unsafe input handling)
+            - Test coverage (happy path and failure path)
+
+            Write your findings as markdown to a new file `review.md` at the repo
+            root, addressed to the person who pushed. If you find nothing worth
+            flagging, still write review.md and say so explicitly - e.g. "No
+            issues found in this push." Never leave it empty or skip writing it.
+
+            Do not run git commit, git push, or any `gh` command yourself.
+            Writing review.md is the only output expected of you.
+          claude_args: |
+            --allowedTools "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*),Bash(git show:*),Write"
+
+      - name: Post the review as a commit comment
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -s review.md ]; then
+            body_file="review.md"
+          else
+            run_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            printf 'Automated push review did not produce output for this push (the review step may have failed or timed out). Check the run: %s\n' "$run_url" > fallback.md
+            body_file="fallback.md"
+          fi
+          gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/comments" -f "body=@${body_file}"
