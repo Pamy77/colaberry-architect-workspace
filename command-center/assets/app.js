@@ -75,7 +75,14 @@
     } else if (DATA.liveReal && DATA.liveReal.length > 0) {
       liveEl.innerHTML = DATA.liveReal
         .map(function (item) {
-          return '<li><span class="dot dot--connected"></span>' + CC.escapeHtml(item) + "</li>";
+          var label = item.id + (item.title ? " — " + item.title : "");
+          return (
+            '<li><span class="dot dot--connected"></span><a href="' +
+            CC.detailLink("story", item.id, "overview") +
+            '">' +
+            CC.escapeHtml(label) +
+            "</a></li>"
+          );
         })
         .join("");
     } else {

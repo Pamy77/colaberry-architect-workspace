@@ -111,6 +111,23 @@ window.CC = (function () {
       return r.start && r.end;
     });
 
+    // "Live" = stories the platform has actually verified (per-story
+    // verification.state, not the rolled-up totals block -- CLAUDE.md names
+    // that field the source of truth for completion). progress.json has no
+    // dedicated "live" field of its own, so this is derived rather than
+    // read directly, same as owners/systems below.
+    var titleById = {};
+    stories.forEach(function (s) {
+      titleById[s.id] = s.title;
+    });
+    var liveReal = (progress.stories || [])
+      .filter(function (s) {
+        return s.verification && s.verification.state === "verified";
+      })
+      .map(function (s) {
+        return { id: s.id, title: titleById[s.id] || null };
+      });
+
     return {
       projectName: plan.project_name,
       requirements: requirements,
@@ -120,7 +137,7 @@ window.CC = (function () {
       guardrails: guardrails,
       roles: roles,
       owners: deriveOwners(stories),
-      liveReal: progress.live || [],
+      liveReal: liveReal,
       hasScheduleDates: hasScheduleDates,
       tabs: local.tabs,
       sample: local.sample,
