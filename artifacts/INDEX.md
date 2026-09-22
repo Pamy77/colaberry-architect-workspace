@@ -11,5 +11,6 @@ week by week. Each row links to the artifact in this repo.
 | Week 4 | Build Your Prompt Library — v1.0.0.md | [`v1-0-0.md`](./week-04/v1-0-0.md) | Small Business KPI Copilot | 4 KB |
 | Week 6 | Build Your Production MCP Server — File location.pdf | [`file-location.pdf`](./week-06/file-location.pdf) *(held on platform)* | Small Business KPI Copilot | 134 KB |
 | Week 7 | Build Your Subagent Integration — kpi-copilot-subagent-handoff-demo.pdf | [`kpi-copilot-subagent-handoff-demo.pdf`](./week-07/kpi-copilot-subagent-handoff-demo.pdf) *(held on platform)* | Small Business KPI Copilot | 65 KB |
+| Week 8 | Build Your Automation Platform — kpi-copilot-finish-story-pipeline-demo.mp4.docx | [`kpi-copilot-finish-story-pipeline-demo-mp4.docx`](./week-08/kpi-copilot-finish-story-pipeline-demo-mp4.docx) *(held on platform)* | Small Business KPI Copilot | 92 KB |
 
-6 artifacts.
+7 artifacts.
